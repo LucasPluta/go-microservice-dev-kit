@@ -6,18 +6,18 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/go-redis/redis/v8"
-	"github.com/nats-io/nats.go"
+	redisclient "github.com/go-redis/redis/v8"
+	natslib "github.com/nats-io/nats.go"
 )
 
 type Service struct {
 	ctx   context.Context
 	db    *sql.DB
-	redis *redis.Client
-	nats  *nats.Conn
+	redis *redisclient.Client
+	nats  *natslib.Conn
 }
 
-func NewService(ctx context.Context, db *sql.DB, redis *redis.Client, nc *nats.Conn) *Service {
+func NewService(ctx context.Context, db *sql.DB, redis *redisclient.Client, nc *natslib.Conn) *Service {
 	return &Service{
 		ctx:   ctx,
 		db:    db,

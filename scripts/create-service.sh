@@ -44,6 +44,8 @@ shift
 
 # Convert service-name to PascalCase for use in code (e.g., user-service -> UserService)
 SERVICE_NAME_PASCAL=$(echo "$SERVICE_NAME" | sed -r 's/(^|-)([a-z])/\U\2/g')
+# Convert service-name to proto package name (e.g., user-service -> userservice, no hyphens)
+PROTO_PACKAGE=$(echo "$SERVICE_NAME" | tr -d '-')
 
 # Parse options
 USE_POSTGRES=false
@@ -360,7 +362,7 @@ print_info "Created internal/handler/handler.go"
 cat > "${SERVICE_DIR}/proto/${SERVICE_NAME}.proto" <<EOF
 syntax = "proto3";
 
-package ${SERVICE_NAME};
+package ${PROTO_PACKAGE};
 
 option go_package = "${SERVICE_NAME}/proto";
 
@@ -464,6 +466,8 @@ fi
 
 cat >> "${SERVICE_DIR}/go.mod" <<EOF
 )
+
+replace github.com/LucasPluta/GoMicroserviceFramework => ../../
 EOF
 
 print_info "Created go.mod"
@@ -626,7 +630,7 @@ Test the gRPC service using grpcurl:
 
 \`\`\`bash
 grpcurl -plaintext localhost:50051 list
-grpcurl -plaintext -d '{"service_id": "test"}' localhost:50051 ${SERVICE_NAME}.${SERVICE_NAME_PASCAL}Service/GetStatus
+grpcurl -plaintext -d '{"service_id": "test"}' localhost:50051 ${PROTO_PACKAGE}.${SERVICE_NAME_PASCAL}Service/GetStatus
 \`\`\`
 EOF
 

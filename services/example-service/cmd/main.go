@@ -7,8 +7,11 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/LucasPluta/GoMicroserviceFramework/pkg/grpc"
 	"database/sql"
+
+	redisclient "github.com/go-redis/redis/v8"
+	natslib "github.com/nats-io/nats.go"
+	grpcpkg "github.com/LucasPluta/GoMicroserviceFramework/pkg/grpc"
 	"github.com/LucasPluta/GoMicroserviceFramework/pkg/database"
 	"github.com/LucasPluta/GoMicroserviceFramework/pkg/redis"
 	"github.com/LucasPluta/GoMicroserviceFramework/pkg/nats"
@@ -48,7 +51,7 @@ func main() {
 	}
 
 	// Initialize Redis connection if enabled
-	var redisClient *redis.Client
+	var redisClient *redisclient.Client
 	if getEnv("USE_REDIS", "false") == "true" {
 		redisConfig := redis.Config{
 			Host: getEnv("REDIS_HOST", "localhost"),
@@ -63,7 +66,7 @@ func main() {
 	}
 
 	// Initialize NATS connection if enabled
-	var nc *nats.Conn
+	var nc *natslib.Conn
 	if getEnv("USE_NATS", "false") == "true" {
 		natsConfig := nats.Config{
 			URL: getEnv("NATS_URL", "nats://localhost:4222"),
@@ -80,12 +83,12 @@ func main() {
 	svc := service.NewService(ctx, db, redisClient, nc)
 
 	// Create gRPC server
-	grpcServer := grpc.NewServer()
+	grpcServer := grpcpkg.NewServer()
 	pb.RegisterExampleServiceServiceServer(grpcServer, handler.NewHandler(svc))
 
 	// Start server in a goroutine
 	go func() {
-		if err := grpc.StartServer(grpcServer, grpcPort); err != nil {
+		if err := grpcpkg.StartServer(grpcServer, grpcPort); err != nil {
 			log.Fatalf("Failed to start gRPC server: %v", err)
 		}
 	}()

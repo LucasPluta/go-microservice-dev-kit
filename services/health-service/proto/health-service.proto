@@ -1,11 +1,11 @@
 syntax = "proto3";
 
-package exampleservice;
+package healthservice;
 
-option go_package = "example-service/proto";
+option go_package = "health-service/proto";
 
-// ExampleServiceService provides methods for the example-service
-service ExampleServiceService {
+// HealthServiceService provides methods for the health-service
+service HealthServiceService {
   // Example unary RPC
   rpc GetStatus(GetStatusRequest) returns (GetStatusResponse) {}
   
