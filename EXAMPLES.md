@@ -93,11 +93,10 @@ message ListUsersRequest {
 }
 ```
 
-Generate protobuf code:
+Generate protobuf code (from repository root):
 
 ```bash
-cd services/user-service
-make proto
+make proto SERVICE=user-service
 ```
 
 Implement the service layer (`internal/service/service.go`):
@@ -525,8 +524,10 @@ services:
   # Services
   user-service:
     build:
-      context: ./services/user-service
+      context: .
       dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: user-service
     ports:
       - "50051:50051"
     environment:
@@ -549,8 +550,10 @@ services:
 
   notification-service:
     build:
-      context: ./services/notification-service
+      context: .
       dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: notification-service
     ports:
       - "50052:50051"
     environment:
@@ -564,8 +567,10 @@ services:
 
   health-service:
     build:
-      context: ./services/health-service
+      context: .
       dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: health-service
     ports:
       - "50053:50051"
     environment:

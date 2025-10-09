@@ -27,8 +27,10 @@ Each service in `docker-compose.yml` should follow this pattern:
 ```yaml
 your-service:
   build:
-    context: ./services/your-service
+    context: .
     dockerfile: Dockerfile
+    args:
+      SERVICE_NAME: your-service
   ports:
     - "50052:50051"  # External:Internal
   environment:
@@ -96,12 +98,14 @@ docker-compose up -d --scale your-service=3
 ### Step 1: Build and Push Images
 
 ```bash
-# Build service image
-cd services/your-service
-docker build -t your-registry/your-service:v1.0.0 .
+# Build service image (from repository root)
+docker build --build-arg SERVICE_NAME=your-service -t your-registry/your-service:v1.0.0 -f Dockerfile .
 
 # Push to registry
 docker push your-registry/your-service:v1.0.0
+
+# Or use the Makefile for multi-arch builds
+make docker-build-multiarch SERVICE=your-service REGISTRY=your-registry
 ```
 
 ### Step 2: Create Kubernetes Manifests
@@ -357,7 +361,7 @@ aws ecr create-repository --repository-name your-service
 2. **Build and Push**:
 ```bash
 aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin <account-id>.dkr.ecr.us-east-1.amazonaws.com
-docker build -t your-service .
+docker build --build-arg SERVICE_NAME=your-service -t your-service -f Dockerfile .
 docker tag your-service:latest <account-id>.dkr.ecr.us-east-1.amazonaws.com/your-service:latest
 docker push <account-id>.dkr.ecr.us-east-1.amazonaws.com/your-service:latest
 ```
@@ -475,7 +479,7 @@ build:
     - docker:dind
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $DOCKER_REGISTRY
-    - docker build -t $DOCKER_IMAGE/your-service:$CI_COMMIT_SHA services/your-service
+    - docker build --build-arg SERVICE_NAME=your-service -t $DOCKER_IMAGE/your-service:$CI_COMMIT_SHA -f Dockerfile .
     - docker push $DOCKER_IMAGE/your-service:$CI_COMMIT_SHA
 
 test:
@@ -499,11 +503,14 @@ deploy:
 
 ### Prometheus Monitoring
 
-Add to service Dockerfile:
+The root Dockerfile already includes health check support. Configure docker-compose health checks:
 
-```dockerfile
-# Add health check endpoint
-HEALTHCHECK CMD grpc_health_probe -addr=:50051 || exit 1
+```yaml
+healthcheck:
+  test: ["CMD", "/service", "--health-check"]  # Implement in your service
+  interval: 10s
+  timeout: 5s
+  retries: 5
 ```
 
 ### Centralized Logging
