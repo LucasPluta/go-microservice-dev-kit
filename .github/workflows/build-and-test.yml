@@ -1,0 +1,135 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ main, copilot/** ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Test Services
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.21'
+        cache: true
+    
+    - name: Install protoc
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y protobuf-compiler
+    
+    - name: Install Go tools
+      run: make install-tools
+    
+    - name: Generate protobuf code for all services
+      run: |
+        for service in services/*; do
+          if [ -d "$service" ] && [ -f "$service/go.mod" ]; then
+            service_name=$(basename "$service")
+            echo "Generating proto for $service_name..."
+            make proto SERVICE=$service_name || echo "No proto file for $service_name"
+          fi
+        done
+    
+    - name: Run tests
+      run: make test
+
+  build:
+    name: Build Services
+    runs-on: ubuntu-latest
+    needs: test
+    
+    strategy:
+      matrix:
+        service: [example-service, health-service, user-service]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.21'
+        cache: true
+    
+    - name: Install protoc
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y protobuf-compiler
+    
+    - name: Install Go tools
+      run: make install-tools
+    
+    - name: Generate protobuf code
+      run: make proto SERVICE=${{ matrix.service }} || echo "No proto for ${{ matrix.service }}"
+    
+    - name: Build service for multiple architectures
+      run: make build-multiarch SERVICE=${{ matrix.service }}
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.service }}-binaries
+        path: |
+          bin/${{ matrix.service }}-linux-amd64
+          bin/${{ matrix.service }}-linux-arm64
+        retention-days: 7
+
+  docker-build:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    strategy:
+      matrix:
+        service: [example-service, health-service, user-service]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.21'
+        cache: true
+    
+    - name: Install protoc
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y protobuf-compiler
+    
+    - name: Install Go tools
+      run: make install-tools
+    
+    - name: Generate protobuf code
+      run: make proto SERVICE=${{ matrix.service }} || echo "No proto for ${{ matrix.service }}"
+    
+    - name: Build binaries for multiple architectures
+      run: make build-multiarch SERVICE=${{ matrix.service }}
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Build Docker image
+      run: make docker-build SERVICE=${{ matrix.service }}
+    
+    - name: Save Docker image
+      run: docker save ${{ matrix.service }}:latest | gzip > ${{ matrix.service }}-image.tar.gz
+    
+    - name: Upload Docker image artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.service }}-docker-image
+        path: ${{ matrix.service }}-image.tar.gz
+        retention-days: 7

@@ -1,4 +1,4 @@
-.PHONY: help build build-service build-all-services docker-build docker-build-multiarch test proto clean up down logs create-service install-tools
+.PHONY: help build build-service build-all-services build-multiarch docker-build docker-build-multiarch test proto clean up down logs create-service install-tools
 
 # Default service name if not specified
 SERVICE ?= example-service
@@ -8,6 +8,11 @@ PLATFORMS ?= linux/amd64,linux/arm64
 
 # Docker registry (override with your registry)
 REGISTRY ?= localhost:5000
+
+# Go binary cache directory
+GOBIN_CACHE := $(PWD)/.gobincache
+export GOBIN := $(GOBIN_CACHE)
+export PATH := $(GOBIN_CACHE):$(PATH)
 
 help:
 	@echo "GoMicroserviceFramework - Available commands:"
@@ -20,9 +25,10 @@ help:
 	@echo ""
 	@echo "Build commands:"
 	@echo "  make build [SERVICE=name]         - Build a specific service binary"
+	@echo "  make build-multiarch SERVICE=name - Build service for linux/amd64 and linux/arm64"
 	@echo "  make build-all-services           - Build all service binaries"
 	@echo "  make docker-build SERVICE=name    - Build Docker image for a service"
-	@echo "  make docker-build-multiarch SERVICE=name - Build multi-arch Docker image"
+	@echo "  make docker-build-multiarch SERVICE=name - Build multi-arch Docker images"
 	@echo "  make proto [SERVICE=name]         - Generate protobuf code for a service"
 	@echo ""
 	@echo "Service management:"
@@ -54,6 +60,7 @@ clean:
 	@find services -type f -name "*.pb.go" -delete
 	@find services -type d -name "bin" -exec rm -rf {} + 2>/dev/null || true
 	@rm -rf bin/
+	@rm -rf .gobincache/
 	@echo "Clean complete"
 
 # Generate protobuf code for a specific service
@@ -74,22 +81,52 @@ endif
 			proto/$(SERVICE).proto
 	@echo "Protobuf code generated successfully"
 
-# Build a single service binary
+# Build a single service binary for the current platform
 build:
 ifndef SERVICE
 	@echo "Error: SERVICE name is required"
 	@echo "Usage: make build SERVICE=service-name"
 	@exit 1
 endif
-	@echo "Building $(SERVICE)..."
+	@echo "Building $(SERVICE) for current platform..."
 	@if [ ! -d "services/$(SERVICE)" ]; then \
 		echo "Error: Service '$(SERVICE)' not found"; \
 		exit 1; \
 	fi
 	@mkdir -p bin
 	@cd services/$(SERVICE) && \
-		go build -o ../../bin/$(SERVICE) ./cmd/main.go
+		CGO_ENABLED=0 go build \
+		-ldflags='-w -s' \
+		-o ../../bin/$(SERVICE) \
+		./cmd/main.go
 	@echo "Built: bin/$(SERVICE)"
+
+# Build binaries for multiple architectures using Go cross-compilation
+build-multiarch:
+ifndef SERVICE
+	@echo "Error: SERVICE name is required"
+	@echo "Usage: make build-multiarch SERVICE=service-name"
+	@exit 1
+endif
+	@echo "Building $(SERVICE) for multiple architectures..."
+	@if [ ! -d "services/$(SERVICE)" ]; then \
+		echo "Error: Service '$(SERVICE)' not found"; \
+		exit 1; \
+	fi
+	@mkdir -p bin
+	@echo "Building for linux/amd64..."
+	@cd services/$(SERVICE) && \
+		CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
+		-ldflags='-w -s' \
+		-o ../../bin/$(SERVICE)-linux-amd64 \
+		./cmd/main.go
+	@echo "Building for linux/arm64..."
+	@cd services/$(SERVICE) && \
+		CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build \
+		-ldflags='-w -s' \
+		-o ../../bin/$(SERVICE)-linux-arm64 \
+		./cmd/main.go
+	@echo "Built: bin/$(SERVICE)-linux-amd64 and bin/$(SERVICE)-linux-arm64"
 
 # Build all service binaries
 build-all-services:
@@ -103,7 +140,7 @@ build-all-services:
 	done
 	@echo "All services built successfully"
 
-# Build Docker image for a specific service
+# Build Docker image for a specific service (requires pre-built binary)
 docker-build:
 ifndef SERVICE
 	@echo "Error: SERVICE name is required"
@@ -115,30 +152,56 @@ endif
 		echo "Error: Service '$(SERVICE)' not found"; \
 		exit 1; \
 	fi
-	docker build --build-arg SERVICE_NAME=$(SERVICE) \
+	@if [ ! -f "bin/$(SERVICE)-linux-amd64" ]; then \
+		echo "Binary not found. Building for linux/amd64..."; \
+		$(MAKE) build-multiarch SERVICE=$(SERVICE); \
+	fi
+	docker build \
+		--build-arg SERVICE_NAME=$(SERVICE) \
+		--build-arg TARGETARCH=amd64 \
+		--build-arg TARGETOS=linux \
 		-t $(SERVICE):latest \
 		-f Dockerfile .
 	@echo "Docker image built: $(SERVICE):latest"
 
-# Build multi-architecture Docker image for a specific service
+# Build multi-architecture Docker images for a specific service (requires pre-built binaries)
 docker-build-multiarch:
 ifndef SERVICE
 	@echo "Error: SERVICE name is required"
-	@echo "Usage: make docker-build-multiarch SERVICE=service-name [REGISTRY=registry] [PLATFORMS=linux/amd64,linux/arm64]"
+	@echo "Usage: make docker-build-multiarch SERVICE=service-name [REGISTRY=registry]"
 	@exit 1
 endif
-	@echo "Building multi-arch Docker image for $(SERVICE)..."
-	@echo "Platforms: $(PLATFORMS)"
-	@echo "Registry: $(REGISTRY)"
+	@echo "Building multi-arch Docker images for $(SERVICE)..."
 	@if [ ! -d "services/$(SERVICE)" ]; then \
 		echo "Error: Service '$(SERVICE)' not found"; \
 		exit 1; \
 	fi
-	docker buildx build --platform $(PLATFORMS) \
+	@echo "Building binaries for multiple architectures..."
+	@$(MAKE) build-multiarch SERVICE=$(SERVICE)
+	@echo "Building Docker images..."
+	@echo "Building for linux/amd64..."
+	@docker build \
 		--build-arg SERVICE_NAME=$(SERVICE) \
-		-t $(REGISTRY)/$(SERVICE):latest \
-		--push \
+		--build-arg TARGETARCH=amd64 \
+		--build-arg TARGETOS=linux \
+		--platform linux/amd64 \
+		-t $(REGISTRY)/$(SERVICE):latest-amd64 \
 		-f Dockerfile .
+	@echo "Building for linux/arm64..."
+	@docker build \
+		--build-arg SERVICE_NAME=$(SERVICE) \
+		--build-arg TARGETARCH=arm64 \
+		--build-arg TARGETOS=linux \
+		--platform linux/arm64 \
+		-t $(REGISTRY)/$(SERVICE):latest-arm64 \
+		-f Dockerfile .
+	@echo "Creating and pushing multi-arch manifest..."
+	@docker push $(REGISTRY)/$(SERVICE):latest-amd64
+	@docker push $(REGISTRY)/$(SERVICE):latest-arm64
+	@docker manifest create $(REGISTRY)/$(SERVICE):latest \
+		$(REGISTRY)/$(SERVICE):latest-amd64 \
+		$(REGISTRY)/$(SERVICE):latest-arm64
+	@docker manifest push $(REGISTRY)/$(SERVICE):latest
 	@echo "Multi-arch Docker image built and pushed: $(REGISTRY)/$(SERVICE):latest"
 
 # Run tests for all services
@@ -161,9 +224,10 @@ ifndef SERVICE
 endif
 	./scripts/create-service.sh $(SERVICE) $(OPTS)
 
-# Install development tools
+# Install development tools to .gobincache
 install-tools:
-	@echo "Installing required tools..."
+	@echo "Installing required tools to $(GOBIN_CACHE)..."
+	@mkdir -p $(GOBIN_CACHE)
 	go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
 	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
-	@echo "Tools installed successfully"
+	@echo "Tools installed successfully to $(GOBIN_CACHE)"

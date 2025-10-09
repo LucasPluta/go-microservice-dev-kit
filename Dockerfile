@@ -1,68 +1,29 @@
-# Multi-architecture Dockerfile for building Go microservices
-# Usage: docker build --build-arg SERVICE_NAME=example-service -t service-name .
+# Multi-architecture Dockerfile for Go microservices
+# Usage: docker build --build-arg SERVICE_NAME=example-service --build-arg TARGETARCH=amd64 -t service-name .
+# Note: Binaries should be pre-built using the Makefile before running docker build
 
-ARG GOLANG_VERSION=1.21
-ARG TARGETARCH
-ARG TARGETOS
+ARG TARGETARCH=amd64
+ARG TARGETOS=linux
 
-# Build stage
-FROM --platform=${BUILDPLATFORM:-linux/amd64} golang:${GOLANG_VERSION}-alpine AS builder
-
-ARG SERVICE_NAME
-ARG TARGETARCH
-ARG TARGETOS
-ARG BUILDPLATFORM
-
-WORKDIR /build
-
-# Install build dependencies including protoc
-RUN apk add --no-cache git ca-certificates tzdata protobuf-dev protoc
-
-# Install Go protoc plugins
-RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@latest && \
-    go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
-
-# Copy go modules for the framework
-COPY go.mod go.sum ./
-RUN go mod download
-
-# Copy framework packages
-COPY pkg/ ./pkg/
-
-# Copy the specific service
-COPY services/${SERVICE_NAME}/ ./services/${SERVICE_NAME}/
-
-# Change to service directory
-WORKDIR /build/services/${SERVICE_NAME}
-
-# Download service-specific dependencies
-RUN go mod download
-
-# Generate protobuf code if proto file exists
-RUN if [ -f "proto/${SERVICE_NAME}.proto" ]; then \
-        protoc --go_out=. --go_opt=paths=source_relative \
-               --go-grpc_out=. --go-grpc_opt=paths=source_relative \
-               proto/${SERVICE_NAME}.proto; \
-    fi
-
-# Build the service with optimizations
-RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
-    go build -a -installsuffix cgo \
-    -ldflags='-w -s -extldflags "-static"' \
-    -o /app/service \
-    ./cmd/main.go
+# Use a minimal base image to get CA certificates and timezone data
+FROM alpine:latest AS certs
+RUN apk add --no-cache ca-certificates tzdata
 
 # Final stage - using scratch for minimal image size
 FROM scratch
 
+ARG SERVICE_NAME
+ARG TARGETARCH
+ARG TARGETOS
+
 # Copy CA certificates for HTTPS
-COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=certs /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
 # Copy timezone data
-COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
+COPY --from=certs /usr/share/zoneinfo /usr/share/zoneinfo
 
-# Copy the binary
-COPY --from=builder /app/service /service
+# Copy the pre-built binary for the target architecture
+COPY bin/${SERVICE_NAME}-${TARGETOS}-${TARGETARCH} /service
 
 # Expose gRPC port (default)
 EXPOSE 50051
