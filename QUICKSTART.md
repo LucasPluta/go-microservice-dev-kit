@@ -58,10 +58,11 @@ user-service/
 │   ├── handler/handler.go     # gRPC request handlers
 │   └── service/service.go     # Business logic
 ├── proto/user-service.proto   # API definitions
-├── Dockerfile                 # Container image
-├── Makefile                   # Build commands
+├── go.mod                      # Go dependencies
 └── README.md                  # Service-specific docs
 ```
+
+**Note:** The root `Dockerfile` and `Makefile` are used to build all services.
 
 ## Step 4: Define Your API
 
@@ -113,10 +114,10 @@ message User {
 
 ## Step 5: Generate Protobuf Code
 
-Generate Go code from your proto definitions:
+Generate Go code from your proto definitions (from the repository root):
 
 ```bash
-make proto
+make proto SERVICE=user-service
 ```
 
 This creates `proto/user-service.pb.go` and `proto/user-service_grpc.pb.go`.
@@ -373,8 +374,17 @@ make down
 make logs                    # All services
 make logs SERVICE=user-service  # Specific service
 
+# Build a service
+make build SERVICE=user-service
+
 # Build all services
-make build
+make build-all-services
+
+# Build Docker image
+make docker-build SERVICE=user-service
+
+# Build multi-arch Docker image
+make docker-build-multiarch SERVICE=user-service REGISTRY=your-registry.io
 
 # Run tests
 make test

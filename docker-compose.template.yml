@@ -43,8 +43,10 @@ services:
   # Example service - copy and modify this template for new services
   # example-service:
   #   build:
-  #     context: ./services/example-service
+  #     context: .
   #     dockerfile: Dockerfile
+  #     args:
+  #       SERVICE_NAME: example-service
   #   ports:
   #     - "50051:50051"  # gRPC port
   #   environment:

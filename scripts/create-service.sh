@@ -397,43 +397,6 @@ EOF
 
 print_info "Created proto/${SERVICE_NAME}.proto"
 
-# Create Dockerfile
-cat > "${SERVICE_DIR}/Dockerfile" <<EOF
-FROM golang:1.21-alpine AS builder
-
-WORKDIR /app
-
-# Install build dependencies
-RUN apk add --no-cache git
-
-# Copy go mod files
-COPY go.mod go.sum ./
-RUN go mod download
-
-# Copy source code
-COPY . .
-
-# Build the application
-RUN CGO_ENABLED=0 GOOS=linux go build -o /app/service ./cmd/main.go
-
-# Final stage
-FROM alpine:latest
-
-RUN apk --no-cache add ca-certificates
-
-WORKDIR /root/
-
-# Copy binary from builder
-COPY --from=builder /app/service .
-
-# Expose gRPC port
-EXPOSE 50051
-
-CMD ["./service"]
-EOF
-
-print_info "Created Dockerfile"
-
 # Create go.mod
 cat > "${SERVICE_DIR}/go.mod" <<EOF
 module ${SERVICE_NAME}
@@ -472,31 +435,6 @@ EOF
 
 print_info "Created go.mod"
 
-# Create Makefile
-cat > "${SERVICE_DIR}/Makefile" <<EOF
-.PHONY: proto build run clean
-
-proto:
-	protoc --go_out=. --go_opt=paths=source_relative \\
-		--go-grpc_out=. --go-grpc_opt=paths=source_relative \\
-		proto/${SERVICE_NAME}.proto
-
-build:
-	go build -o bin/${SERVICE_NAME} ./cmd/main.go
-
-run:
-	go run ./cmd/main.go
-
-clean:
-	rm -rf bin/
-	rm -f proto/*.pb.go
-
-test:
-	go test -v ./...
-EOF
-
-print_info "Created Makefile"
-
 # Create README
 cat > "${SERVICE_DIR}/README.md" <<EOF
 # ${SERVICE_NAME}
@@ -532,20 +470,37 @@ cat >> "${SERVICE_DIR}/README.md" <<EOF
 
 ### Generate protobuf code
 
+From the repository root:
+
 \`\`\`bash
-make proto
+make proto SERVICE=${SERVICE_NAME}
 \`\`\`
 
 ### Build
 
+Build the binary:
+
 \`\`\`bash
-make build
+make build SERVICE=${SERVICE_NAME}
+\`\`\`
+
+Build Docker image:
+
+\`\`\`bash
+make docker-build SERVICE=${SERVICE_NAME}
+\`\`\`
+
+Build multi-architecture Docker image:
+
+\`\`\`bash
+make docker-build-multiarch SERVICE=${SERVICE_NAME} REGISTRY=your-registry.io
 \`\`\`
 
 ### Run locally
 
 \`\`\`bash
-make run
+cd services/${SERVICE_NAME}
+go run ./cmd/main.go
 \`\`\`
 
 ### Run with Docker Compose
@@ -555,8 +510,10 @@ Add the service to \`docker-compose.yml\`:
 \`\`\`yaml
   ${SERVICE_NAME}:
     build:
-      context: ./services/${SERVICE_NAME}
+      context: .
       dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: ${SERVICE_NAME}
     ports:
       - "50051:50051"  # Adjust port as needed
     environment:
@@ -644,6 +601,7 @@ print_info "1. cd ${SERVICE_DIR}"
 print_info "2. Implement your business logic in internal/service/service.go"
 print_info "3. Implement your gRPC handlers in internal/handler/handler.go"
 print_info "4. Update proto/${SERVICE_NAME}.proto with your API definitions"
-print_info "5. Run 'make proto' to generate protobuf code"
-print_info "6. Add the service to docker-compose.yml (see ${SERVICE_DIR}/README.md)"
-print_info "7. Run 'docker-compose up ${SERVICE_NAME}' to start your service"
+print_info "5. From repo root, run 'make proto SERVICE=${SERVICE_NAME}' to generate protobuf code"
+print_info "6. Build: 'make build SERVICE=${SERVICE_NAME}' or 'make docker-build SERVICE=${SERVICE_NAME}'"
+print_info "7. Add the service to docker-compose.yml (see ${SERVICE_DIR}/README.md)"
+print_info "8. Run 'docker-compose up ${SERVICE_NAME}' to start your service"

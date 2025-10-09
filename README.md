@@ -72,25 +72,31 @@ services/<service-name>/
 │       └── service.go
 ├── proto/
 │   └── <service-name>.proto # Protocol buffer definitions
-├── Dockerfile               # Docker configuration
-├── Makefile                 # Build automation
 ├── go.mod                   # Go dependencies
 └── README.md                # Service documentation
 ```
 
+**Note:** Services use the root `Dockerfile` and `Makefile` for building.
+
 ### Developing a Service
 
 1. **Define your API** in `proto/<service-name>.proto`
-2. **Generate protobuf code**:
+2. **Generate protobuf code** (from repository root):
    ```bash
-   cd services/<service-name>
-   make proto
+   make proto SERVICE=<service-name>
    ```
 3. **Implement business logic** in `internal/service/service.go`
 4. **Implement gRPC handlers** in `internal/handler/handler.go`
 5. **Build the service**:
    ```bash
-   make build
+   # Build binary
+   make build SERVICE=<service-name>
+   
+   # Or build Docker image
+   make docker-build SERVICE=<service-name>
+   
+   # Or build multi-arch image
+   make docker-build-multiarch SERVICE=<service-name> REGISTRY=your-registry.io
    ```
 
 ### Running Services
@@ -100,12 +106,32 @@ services/<service-name>/
 Run a single service locally:
 ```bash
 cd services/<service-name>
-make run
+go run ./cmd/main.go
+```
+
+Or use the built binary:
+```bash
+./bin/<service-name>
 ```
 
 #### Docker Compose
 
-1. Add your service to `docker-compose.yml` (see `docker-compose.template.yml` for reference)
+1. Add your service to `docker-compose.yml` (see `docker-compose.template.yml` for reference):
+   ```yaml
+   your-service:
+     build:
+       context: .
+       dockerfile: Dockerfile
+       args:
+         SERVICE_NAME: your-service
+     ports:
+       - "50051:50051"
+     environment:
+       - SERVICE_NAME=your-service
+       - GRPC_PORT=50051
+       # Add other environment variables as needed
+   ```
+
 2. Start infrastructure and your service:
    ```bash
    docker-compose up
