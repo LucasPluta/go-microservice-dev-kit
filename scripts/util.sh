@@ -3,12 +3,39 @@
 # util.sh - Common utilities for GoMicroserviceFramework scripts
 # This file should be sourced by all other scripts in the framework
 
-# ANSI color codes
+# Strict error handling
+# -e: Exit on error
+# -u: Exit on undefined variable
+# -o pipefail: Exit on pipe failure
+set -euo pipefail
+
+# ANSI color codes (must be defined before error trap uses them)
 GREY='\033[0;90m'
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
+
+# Error trap handler
+error_trap() {
+    local exit_code=$?
+    local line_number=$1
+    local bash_lineno=$2
+    # Get the script name safely, checking if BASH_SOURCE has enough elements
+    local script_name="unknown"
+    if [ ${#BASH_SOURCE[@]} -gt 2 ]; then
+        script_name=$(basename "${BASH_SOURCE[2]}")
+    elif [ ${#BASH_SOURCE[@]} -gt 1 ]; then
+        script_name=$(basename "${BASH_SOURCE[1]}")
+    fi
+    local timestamp=$(date '+%H:%M:%S')
+    
+    echo -e "${GREY}[${timestamp}][${script_name}:${bash_lineno}]${NC} - ${RED}ERROR:${NC} Command failed with exit code ${exit_code}" >&2
+    exit $exit_code
+}
+
+# Set up error trap for all scripts
+trap 'error_trap $LINENO ${BASH_LINENO[0]}' ERR
 
 # Custom echo function with timestamp and source location
 # Usage: lp-echo "Your message here"

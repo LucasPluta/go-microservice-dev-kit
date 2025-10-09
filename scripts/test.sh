@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
-set -e
 
-# Source utilities
+# Source utilities (includes set -euo pipefail)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/util.sh"
 
@@ -9,8 +8,7 @@ source "${SCRIPT_DIR}/util.sh"
 "${SCRIPT_DIR}/setup-go.sh" >/dev/null 2>&1 || true
 
 # Get Go binary
-GO=$(get_go_binary)
-if [ $? -ne 0 ]; then
+if ! GO=$(get_go_binary); then
     lp-error "Failed to get Go binary. Run 'make setup-go' first"
     exit 1
 fi
@@ -30,10 +28,10 @@ for service_dir in "$SERVICES_DIR"/*; do
         
         if (cd "$service_dir" && "$GO" test -v ./...); then
             lp-success "Tests passed for ${service_name}"
-            ((test_count++))
+            test_count=$((test_count + 1))
         else
             lp-error "Tests failed for ${service_name}"
-            ((failed_count++))
+            failed_count=$((failed_count + 1))
         fi
     fi
 done

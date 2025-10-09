@@ -3,9 +3,7 @@
 # Script to download and setup Go toolchain based on go.mod version
 # Supports: Linux and macOS on amd64 and arm64
 
-set -e
-
-# Source utilities
+# Source utilities (includes set -euo pipefail)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/util.sh"
 

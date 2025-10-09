@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
-set -e
 
-# Source utilities
+# Source utilities (includes set -euo pipefail)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/util.sh"
 
@@ -9,8 +8,7 @@ source "${SCRIPT_DIR}/util.sh"
 "${SCRIPT_DIR}/setup-go.sh" >/dev/null 2>&1 || true
 
 # Get Go binary
-GO=$(get_go_binary)
-if [ $? -ne 0 ]; then
+if ! GO=$(get_go_binary); then
     lp-error "Failed to get Go binary. Run 'make setup-go' first"
     exit 1
 fi
