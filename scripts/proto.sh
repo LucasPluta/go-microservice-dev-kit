@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+set -e
+
+# Source utilities
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/util.sh"
+
+SERVICE="${1:-}"
+
+if [ -z "$SERVICE" ]; then
+    lp-error "SERVICE name is required"
+    lp-echo "Usage: $0 <service-name>"
+    exit 1
+fi
+
+# Validate service exists
+if ! validate_service "$SERVICE"; then
+    exit 1
+fi
+
+SERVICE_DIR="${FRAMEWORK_ROOT}/services/${SERVICE}"
+PROTO_FILE="${SERVICE_DIR}/proto/${SERVICE}.proto"
+
+if [ ! -f "$PROTO_FILE" ]; then
+    lp-warn "Proto file not found: ${PROTO_FILE}"
+    lp-echo "Service may not have a proto definition"
+    exit 0
+fi
+
+lp-echo "Generating protobuf code for ${SERVICE}..."
+lp-echo "Proto file: ${PROTO_FILE}"
+
+cd "$SERVICE_DIR"
+protoc --go_out=. --go_opt=paths=source_relative \
+    --go-grpc_out=. --go-grpc_opt=paths=source_relative \
+    "proto/${SERVICE}.proto"
+
+lp-success "Protobuf code generated successfully for ${SERVICE}"

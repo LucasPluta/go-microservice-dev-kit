@@ -1,31 +1,16 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Script to create a new microservice from template
 
 set -e
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
-
-# Function to print colored output
-print_info() {
-    echo -e "${GREEN}[INFO]${NC} $1"
-}
-
-print_warning() {
-    echo -e "${YELLOW}[WARN]${NC} $1"
-}
-
-print_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
-}
+# Source utilities
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/util.sh"
 
 # Check if service name is provided
 if [ -z "$1" ]; then
-    print_error "Service name is required"
+    lp-error "Service name is required"
     echo "Usage: ./scripts/create-service.sh <service-name> [options]"
     echo ""
     echo "Options:"
@@ -72,7 +57,7 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         *)
-            print_warning "Unknown option: $1"
+            lp-warn "Unknown option: $1"
             shift
             ;;
     esac
@@ -82,20 +67,20 @@ SERVICE_DIR="services/${SERVICE_NAME}"
 
 # Check if service already exists
 if [ -d "$SERVICE_DIR" ]; then
-    print_error "Service '${SERVICE_NAME}' already exists in ${SERVICE_DIR}"
+    lp-error "Service '${SERVICE_NAME}' already exists in ${SERVICE_DIR}"
     exit 1
 fi
 
-print_info "Creating new service: ${SERVICE_NAME}"
-print_info "  PostgreSQL: ${USE_POSTGRES}"
-print_info "  Redis: ${USE_REDIS}"
-print_info "  NATS: ${USE_NATS}"
-print_info "  Internal: ${IS_INTERNAL}"
+lp-echo "Creating new service: ${SERVICE_NAME}"
+lp-echo "  PostgreSQL: ${USE_POSTGRES}"
+lp-echo "  Redis: ${USE_REDIS}"
+lp-echo "  NATS: ${USE_NATS}"
+lp-echo "  Internal: ${IS_INTERNAL}"
 
 # Create service directory structure
 mkdir -p "${SERVICE_DIR}"/{cmd,internal/handler,internal/service,proto}
 
-print_info "Created directory structure"
+lp-echo "Created directory structure"
 
 # Create main.go
 cat > "${SERVICE_DIR}/cmd/main.go" <<EOF
@@ -245,7 +230,7 @@ func getEnv(key, defaultValue string) string {
 }
 EOF
 
-print_info "Created cmd/main.go"
+lp-echo "Created cmd/main.go"
 
 # Create service layer
 cat > "${SERVICE_DIR}/internal/service/service.go" <<EOF
@@ -331,7 +316,7 @@ cat >> "${SERVICE_DIR}/internal/service/service.go" <<EOF
 // Add your business logic methods here
 EOF
 
-print_info "Created internal/service/service.go"
+lp-echo "Created internal/service/service.go"
 
 # Create handler layer
 cat > "${SERVICE_DIR}/internal/handler/handler.go" <<EOF
@@ -356,7 +341,7 @@ func NewHandler(svc *service.Service) *Handler {
 // Implement your gRPC methods here
 EOF
 
-print_info "Created internal/handler/handler.go"
+lp-echo "Created internal/handler/handler.go"
 
 # Create proto file
 cat > "${SERVICE_DIR}/proto/${SERVICE_NAME}.proto" <<EOF
@@ -395,7 +380,7 @@ message StreamDataResponse {
 }
 EOF
 
-print_info "Created proto/${SERVICE_NAME}.proto"
+lp-echo "Created proto/${SERVICE_NAME}.proto"
 
 # Create go.mod
 cat > "${SERVICE_DIR}/go.mod" <<EOF
@@ -433,7 +418,7 @@ cat >> "${SERVICE_DIR}/go.mod" <<EOF
 replace github.com/LucasPluta/GoMicroserviceFramework => ../../
 EOF
 
-print_info "Created go.mod"
+lp-echo "Created go.mod"
 
 # Create README
 cat > "${SERVICE_DIR}/README.md" <<EOF
@@ -591,17 +576,17 @@ grpcurl -plaintext -d '{"service_id": "test"}' localhost:50051 ${PROTO_PACKAGE}.
 \`\`\`
 EOF
 
-print_info "Created README.md"
+lp-echo "Created README.md"
 
-print_info ""
-print_info "✅ Service '${SERVICE_NAME}' created successfully!"
-print_info ""
-print_info "Next steps:"
-print_info "1. cd ${SERVICE_DIR}"
-print_info "2. Implement your business logic in internal/service/service.go"
-print_info "3. Implement your gRPC handlers in internal/handler/handler.go"
-print_info "4. Update proto/${SERVICE_NAME}.proto with your API definitions"
-print_info "5. From repo root, run 'make proto SERVICE=${SERVICE_NAME}' to generate protobuf code"
-print_info "6. Build: 'make build SERVICE=${SERVICE_NAME}' or 'make docker-build SERVICE=${SERVICE_NAME}'"
-print_info "7. Add the service to docker-compose.yml (see ${SERVICE_DIR}/README.md)"
-print_info "8. Run 'docker-compose up ${SERVICE_NAME}' to start your service"
+lp-echo ""
+lp-echo "✅ Service '${SERVICE_NAME}' created successfully!"
+lp-echo ""
+lp-echo "Next steps:"
+lp-echo "1. cd ${SERVICE_DIR}"
+lp-echo "2. Implement your business logic in internal/service/service.go"
+lp-echo "3. Implement your gRPC handlers in internal/handler/handler.go"
+lp-echo "4. Update proto/${SERVICE_NAME}.proto with your API definitions"
+lp-echo "5. From repo root, run 'make proto SERVICE=${SERVICE_NAME}' to generate protobuf code"
+lp-echo "6. Build: 'make build SERVICE=${SERVICE_NAME}' or 'make docker-build SERVICE=${SERVICE_NAME}'"
+lp-echo "7. Add the service to docker-compose.yml (see ${SERVICE_DIR}/README.md)"
+lp-echo "8. Run 'docker-compose up ${SERVICE_NAME}' to start your service"
