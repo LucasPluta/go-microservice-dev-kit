@@ -10,26 +10,31 @@ A comprehensive framework for quickly building, testing, and deploying Go micros
 - 🐳 **Docker Ready**: Templated docker-compose configuration for easy deployment
 - 🔒 **Public/Internal Services**: Configure services as public-facing or internal
 - 📦 **Modular Architecture**: Clean separation of concerns with handler, service, and proto layers
+- 🛠️ **Self-Contained**: No external Go installation required - downloads toolchain automatically
 
 ## Quick Start
 
 ### Prerequisites
 
-- Go 1.21+
-- Docker and Docker Compose
+- Docker and Docker Compose (for running services)
 - Protocol Buffers compiler (`protoc`)
-- gRPC Go plugins
+- **No Go installation required** - framework downloads it automatically
 
-Install protoc plugins (stored in `.gobincache/`):
+### Setup
+
+The framework is self-contained and downloads the Go toolchain automatically:
+
 ```bash
+# Download Go toolchain (version from go.mod)
+make setup-go
+
+# Install protoc plugins (stored in `.gobincache/`)
 make install-tools
 ```
 
-Or manually:
-```bash
-go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
-go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
-```
+**Supported Platforms:**
+- macOS: amd64 (Intel), arm64 (Apple Silicon)
+- Linux: amd64, arm64
 
 ### Creating a New Service
 

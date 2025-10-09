@@ -6,27 +6,32 @@ This guide will help you get started with the GoMicroserviceFramework in minutes
 
 Before you begin, ensure you have the following installed:
 
-- [Go 1.21+](https://golang.org/doc/install)
 - [Docker](https://docs.docker.com/get-docker/)
 - [Docker Compose](https://docs.docker.com/compose/install/)
 - [Protocol Buffers Compiler (protoc)](https://grpc.io/docs/protoc-installation/)
 
-## Step 1: Install Required Tools
+**Note:** Go installation is NOT required - the framework downloads it automatically.
 
-Install the Go protobuf plugins:
+## Step 1: Setup Go Toolchain
+
+The framework downloads the Go toolchain specified in `go.mod`:
 
 ```bash
-go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
-go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+# Download Go toolchain (supports macOS and Linux on amd64/arm64)
+make setup-go
 ```
 
-Or use the Makefile:
+This downloads Go 1.21.13 to `.goroot/` directory.
+
+## Step 2: Install Required Tools
+
+Install the Go protobuf plugins:
 
 ```bash
 make install-tools
 ```
 
-## Step 2: Create Your First Service
+## Step 3: Create Your First Service
 
 Let's create a user service with PostgreSQL and Redis support:
 
@@ -41,7 +46,7 @@ This command creates a complete microservice with:
 - Docker configuration
 - Example API definitions
 
-## Step 3: Explore the Generated Service
+## Step 4: Explore the Generated Service
 
 Navigate to the service directory:
 
@@ -64,7 +69,7 @@ user-service/
 
 **Note:** The root `Dockerfile` and `Makefile` are used to build all services.
 
-## Step 4: Define Your API
+## Step 5: Define Your API
 
 Edit `proto/user-service.proto` to define your gRPC API:
 
@@ -112,7 +117,7 @@ message User {
 }
 ```
 
-## Step 5: Generate Protobuf Code
+## Step 6: Generate Protobuf Code
 
 Generate Go code from your proto definitions (from the repository root):
 
@@ -122,7 +127,7 @@ make proto SERVICE=user-service
 
 This creates `proto/user-service.pb.go` and `proto/user-service_grpc.pb.go`.
 
-## Step 6: Implement Business Logic
+## Step 7: Implement Business Logic
 
 ### Update Service Layer
 
@@ -252,7 +257,7 @@ func (h *Handler) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.GetU
 }
 ```
 
-## Step 7: Add Service to Docker Compose
+## Step 8: Add Service to Docker Compose
 
 Return to the root directory:
 
@@ -288,7 +293,7 @@ Add your service to `docker-compose.yml`:
         condition: service_healthy
 ```
 
-## Step 8: Start the Infrastructure
+## Step 9: Start the Infrastructure
 
 Start PostgreSQL, Redis, and NATS:
 
@@ -298,7 +303,7 @@ docker-compose up -d postgres redis nats
 
 Wait a few seconds for services to be healthy.
 
-## Step 9: Run Your Service
+## Step 10: Run Your Service
 
 You can run the service either locally or in Docker.
 
@@ -325,7 +330,7 @@ go run cmd/main.go
 docker-compose up user-service
 ```
 
-## Step 10: Test Your Service
+## Step 11: Test Your Service
 
 Install grpcurl if you haven't already:
 
@@ -409,6 +414,7 @@ make clean
 
 ### go module errors
 - Run `go mod tidy` in the service directory
-- Ensure you're using Go 1.21+
+- Ensure `make setup-go` was run to download the Go toolchain
+- Verify Go version: check `go.mod` for required version
 
 For more help, see the main [README.md](README.md).
