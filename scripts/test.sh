@@ -4,17 +4,13 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/util.sh"
 
-# Ensure setup-go has been run
-"${SCRIPT_DIR}/setup-go.sh" >/dev/null 2>&1 || true
-
-# Get Go binary
+# Get Go binary (will error if not installed)
 if ! GO=$(get_go_binary); then
     lp-error "Failed to get Go binary. Run 'make setup-go' first"
     exit 1
 fi
 
 lp-echo "Running tests for all services..."
-lp-echo "Using Go: ${GO}"
 
 SERVICES_DIR="${FRAMEWORK_ROOT}/services"
 test_count=0
@@ -26,7 +22,7 @@ for service_dir in "$SERVICES_DIR"/*; do
         service_name=$(basename "$service_dir")
         lp-echo "Testing ${service_name}..."
         
-        if (cd "$service_dir" && "$GO" test -v ./...); then
+        if (cd "$service_dir" && "$GO" test -v ./... 2>&1 | grep -E '(^(PASS|FAIL|ok|SKIP)|error)'); then
             lp-success "Tests passed for ${service_name}"
             test_count=$((test_count + 1))
         else

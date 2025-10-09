@@ -2,10 +2,18 @@
 
 # Script to download and setup Go toolchain based on go.mod version
 # Supports: Linux and macOS on amd64 and arm64
+# Usage: setup-go.sh [--quiet]
+#   --quiet: Skip output if Go is already installed
 
 # Source utilities (includes set -euo pipefail)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/util.sh"
+
+# Parse arguments
+QUIET_MODE=false
+if [ "${1:-}" = "--quiet" ]; then
+    QUIET_MODE=true
+fi
 
 # Detect host OS and architecture
 detect_platform() {
@@ -38,7 +46,9 @@ detect_platform() {
             ;;
     esac
     
-    lp-echo "Detected platform: ${OS}/${ARCH}"
+    if [ "$QUIET_MODE" = false ]; then
+        lp-echo "Detected platform: ${OS}/${ARCH}"
+    fi
 }
 
 # Extract Go version from go.mod
@@ -56,7 +66,9 @@ get_go_version() {
         exit 1
     fi
     
-    lp-echo "Go version from go.mod: ${GO_VERSION}"
+    if [ "$QUIET_MODE" = false ]; then
+        lp-echo "Go version from go.mod: ${GO_VERSION}"
+    fi
 }
 
 # Check if Go is already downloaded
@@ -66,11 +78,15 @@ check_existing_go() {
     if [ -d "$go_dir" ] && [ -x "$go_dir/bin/go" ]; then
         local installed_version=$("$go_dir/bin/go" version | awk '{print $3}' | sed 's/go//')
         if [ "$installed_version" = "$GO_VERSION" ]; then
-            lp-echo "Go ${GO_VERSION} already installed at $go_dir"
-            echo "$go_dir"
+            if [ "$QUIET_MODE" = false ]; then
+                lp-echo "Go ${GO_VERSION} already installed at $go_dir"
+            fi
+            # Don't output path to stdout - it causes nested logging issues
             return 0
         else
-            lp-warn "Found Go at $go_dir but version mismatch. Will re-download."
+            if [ "$QUIET_MODE" = false ]; then
+                lp-warn "Found Go at $go_dir but version mismatch. Will re-download."
+            fi
             rm -rf "$go_dir"
         fi
     fi
@@ -89,8 +105,8 @@ download_go() {
     
     mkdir -p .goroot
     
-    # Download Go tarball
-    if ! curl -L -f -o ".goroot/$tarball" "$download_url"; then
+    # Download Go tarball (suppress curl progress bar)
+    if ! curl -L -f -s -S -o ".goroot/$tarball" "$download_url"; then
         lp-error "Failed to download Go from $download_url"
         lp-error "Please verify that Go ${GO_VERSION} is available for ${OS}/${ARCH}"
         exit 1
@@ -98,7 +114,7 @@ download_go() {
     
     lp-echo "Extracting Go..."
     mkdir -p "$go_dir"
-    tar -C "$go_dir" --strip-components=1 -xzf ".goroot/$tarball"
+    tar -C "$go_dir" --strip-components=1 -xzf ".goroot/$tarball" 2>&1 | grep -v "^x " || true
     rm ".goroot/$tarball"
     
     # Verify installation
@@ -108,9 +124,7 @@ download_go() {
     fi
     
     local installed_version=$("$go_dir/bin/go" version | awk '{print $3}' | sed 's/go//')
-    lp-echo "Successfully installed Go ${installed_version} at $go_dir"
-    
-    echo "$go_dir"
+    lp-success "Successfully installed Go ${installed_version} at $go_dir"
 }
 
 # Main function
@@ -125,4 +139,7 @@ main() {
     download_go
 }
 
-main
+# Only run if not sourced
+if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
+    main
+fi

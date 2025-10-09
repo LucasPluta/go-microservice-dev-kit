@@ -19,23 +19,22 @@ NC='\033[0m' # No Color
 # Error trap handler
 error_trap() {
     local exit_code=$?
-    local line_number=$1
-    local bash_lineno=$2
+    local line_number=${1:-0}
     # Get the script name safely, checking if BASH_SOURCE has enough elements
     local script_name="unknown"
-    if [ ${#BASH_SOURCE[@]} -gt 2 ]; then
-        script_name=$(basename "${BASH_SOURCE[2]}")
-    elif [ ${#BASH_SOURCE[@]} -gt 1 ]; then
+    if [ ${#BASH_SOURCE[@]} -gt 1 ]; then
         script_name=$(basename "${BASH_SOURCE[1]}")
     fi
     local timestamp=$(date '+%H:%M:%S')
+    local failed_command="${BASH_COMMAND}"
     
-    echo -e "${GREY}[${timestamp}][${script_name}:${bash_lineno}]${NC} - ${RED}ERROR:${NC} Command failed with exit code ${exit_code}" >&2
+    echo -e "${GREY}[${timestamp}][${script_name}:${line_number}]${NC} - ${RED}ERROR:${NC} Command failed with exit code ${exit_code}" >&2
+    echo -e "${GREY}[${timestamp}][${script_name}:${line_number}]${NC} - ${RED}Failed command:${NC} ${failed_command}" >&2
     exit $exit_code
 }
 
 # Set up error trap for all scripts
-trap 'error_trap $LINENO ${BASH_LINENO[0]}' ERR
+trap 'error_trap $LINENO' ERR
 
 # Custom echo function with timestamp and source location
 # Usage: lp-echo "Your message here"
@@ -112,11 +111,42 @@ validate_service() {
 
 # Get Go binary path
 get_go_binary() {
-    local setup_go_script="${FRAMEWORK_ROOT}/scripts/setup-go.sh"
-    local go_root=$("$setup_go_script" 2>/dev/null || echo "")
+    local go_version
+    local os=$(uname -s | tr '[:upper:]' '[:lower:]')
+    local arch=$(uname -m)
     
-    if [ -z "$go_root" ]; then
-        lp-error "Go toolchain not found. Run 'make setup-go' first"
+    case "$os" in
+        linux*) os="linux" ;;
+        darwin*) os="darwin" ;;
+        *) 
+            lp-error "Unsupported OS: $os"
+            return 1
+            ;;
+    esac
+    
+    case "$arch" in
+        x86_64|amd64) arch="amd64" ;;
+        aarch64|arm64) arch="arm64" ;;
+        *)
+            lp-error "Unsupported architecture: $arch"
+            return 1
+            ;;
+    esac
+    
+    # Extract Go version from go.mod
+    if [ -f "${FRAMEWORK_ROOT}/go.mod" ]; then
+        go_version=$(grep -E "^go [0-9]+\.[0-9]+(\.[0-9]+)?" "${FRAMEWORK_ROOT}/go.mod" | awk '{print $2}')
+    fi
+    
+    if [ -z "$go_version" ]; then
+        lp-error "Could not extract Go version from go.mod"
+        return 1
+    fi
+    
+    local go_root="${FRAMEWORK_ROOT}/.goroot/go${go_version}.${os}-${arch}"
+    
+    if [ ! -x "${go_root}/bin/go" ]; then
+        lp-error "Go toolchain not found at ${go_root}. Run 'make setup-go' first"
         return 1
     fi
     

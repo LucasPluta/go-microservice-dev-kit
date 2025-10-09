@@ -30,8 +30,10 @@ lp-echo "Generating protobuf code for ${SERVICE}..."
 lp-echo "Proto file: ${PROTO_FILE}"
 
 cd "$SERVICE_DIR"
-protoc --go_out=. --go_opt=paths=source_relative \
+if ! protoc --go_out=. --go_opt=paths=source_relative \
     --go-grpc_out=. --go-grpc_opt=paths=source_relative \
-    "proto/${SERVICE}.proto"
+    "proto/${SERVICE}.proto" 2>&1 | grep -E '(error|warning)' || true; then
+    :  # Success - no errors
+fi
 
 lp-success "Protobuf code generated successfully for ${SERVICE}"

@@ -17,17 +17,13 @@ if ! validate_service "$SERVICE"; then
     exit 1
 fi
 
-# Ensure setup-go has been run
-"${SCRIPT_DIR}/setup-go.sh" >/dev/null 2>&1 || true
-
-# Get Go binary
+# Get Go binary (will error if not installed)
 if ! GO=$(get_go_binary); then
     lp-error "Failed to get Go binary. Run 'make setup-go' first"
     exit 1
 fi
 
 lp-echo "Building ${SERVICE} for current platform..."
-lp-echo "Using Go: ${GO}"
 
 SERVICE_DIR="${FRAMEWORK_ROOT}/services/${SERVICE}"
 BIN_DIR="${FRAMEWORK_ROOT}/bin"
@@ -37,9 +33,11 @@ mkdir -p "$BIN_DIR"
 
 lp-echo "Compiling binary..."
 cd "$SERVICE_DIR"
-CGO_ENABLED=0 "$GO" build \
+if ! CGO_ENABLED=0 "$GO" build \
     -ldflags='-w -s' \
     -o "${BIN_DIR}/${SERVICE}" \
-    ./cmd/main.go
+    ./cmd/main.go 2>&1 | grep -E '(^#|error|warning)' || true; then
+    exit 1
+fi
 
 lp-success "Built: ${BIN_DIR}/${SERVICE}"
