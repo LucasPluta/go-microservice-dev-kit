@@ -12,7 +12,14 @@ A complete, production-ready framework for building Go microservices with gRPC, 
 - Automated service scaffolding
 - Configurable dependencies (--postgres, --redis, --nats, --internal)
 - Generates complete service structure with proper imports and type handling
-- Creates Dockerfile, Makefile, and documentation
+- Creates service-specific code and documentation
+
+#### Root Build System
+- **Single Dockerfile**: Multi-arch support (linux/amd64, linux/arm64)
+- **FROM scratch**: Minimal production images (~10-20MB)
+- **Templated**: Uses SERVICE_NAME build argument
+- **Automated**: Protobuf generation during build
+- **Master Makefile**: Centralized build commands for all services
 
 #### Shared Packages (`pkg/`)
 - **grpc**: gRPC server utilities with reflection
@@ -89,20 +96,19 @@ A complete, production-ready framework for building Go microservices with gRPC, 
 
 ### 4. Build and Development Tools
 
-#### Root Makefile
+#### Root Makefile (Centralized Build System)
+- `make docker-build SERVICE=name` - Build Docker image for a service
+- `make docker-build-multiarch SERVICE=name` - Build multi-arch image and push
+- `make build SERVICE=name` - Build Go binary for a service
+- `make build-all-services` - Build all service binaries
+- `make proto SERVICE=name` - Generate protobuf code for a service
 - `make up/down` - Docker Compose management
 - `make logs` - View service logs
-- `make build` - Build all services
-- `make test` - Run tests
+- `make test` - Run tests for all services
 - `make create-service` - Generate new service
 - `make install-tools` - Install required tools
 
-#### Service Makefiles
-- `make proto` - Generate protobuf code
-- `make build` - Build binary
-- `make run` - Run locally
-- `make clean` - Clean artifacts
-- `make test` - Run tests
+**Note:** Individual service Dockerfiles and Makefiles have been removed in favor of the centralized root build system.
 
 ### 5. Configuration
 
@@ -139,9 +145,12 @@ All services are configured via environment variables:
    - Compatible with latest gRPC versions
 
 4. **Build System**
+   - Single root Dockerfile with multi-arch support
+   - FROM scratch for minimal images (~10-20MB)
+   - Centralized Makefile with unified build commands
    - Go modules configured correctly
    - Local development via replace directive
-   - Multi-stage Docker builds
+   - Automated protobuf generation in Docker build
 
 5. **Infrastructure Integration**
    - PostgreSQL connection pooling
@@ -166,10 +175,18 @@ All services are configured via environment variables:
 
 ### Build and Run
 ```bash
-cd services/payment-service
-make proto
-make build
+# Generate protobuf code
+make proto SERVICE=payment-service
+
+# Build binary
+make build SERVICE=payment-service
 ./bin/payment-service
+
+# Or build Docker image
+make docker-build SERVICE=payment-service
+
+# Or build multi-arch image
+make docker-build-multiarch SERVICE=payment-service REGISTRY=myregistry.io
 ```
 
 ### Test with Docker Compose
