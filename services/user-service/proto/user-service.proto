@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package userservice;
 
-option go_package = "user-service/proto";
+option go_package = "github.com/LucasPluta/GoMicroserviceFramework/services/user-service/proto";
 
 // UserServiceService provides methods for the user-service
 service UserServiceService {

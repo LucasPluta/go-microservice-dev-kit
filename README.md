@@ -213,7 +213,7 @@ NATS connection management with JetStream support for advanced messaging pattern
 .
 ├── docker-compose.yml           # Main docker-compose configuration
 ├── docker-compose.template.yml  # Template for adding new services
-├── go.mod                       # Framework dependencies
+├── go.mod                       # Single go.mod for entire monorepo
 ├── pkg/                         # Shared packages
 │   ├── database/               # PostgreSQL utilities
 │   ├── grpc/                   # gRPC server utilities

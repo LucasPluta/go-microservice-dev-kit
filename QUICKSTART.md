@@ -63,11 +63,10 @@ user-service/
 │   ├── handler/handler.go     # gRPC request handlers
 │   └── service/service.go     # Business logic
 ├── proto/user-service.proto   # API definitions
-├── go.mod                      # Go dependencies
-└── README.md                  # Service-specific docs
+└── README.md                   # Service-specific docs
 ```
 
-**Note:** The root `Dockerfile` and `Makefile` are used to build all services.
+**Note:** The framework uses a **single `go.mod` at the repository root** (monorepo structure). Services import packages using the full module path: `github.com/LucasPluta/GoMicroserviceFramework/services/user-service/...`
 
 ## Step 5: Define Your API
 
@@ -78,7 +77,7 @@ syntax = "proto3";
 
 package user-service;
 
-option go_package = "user-service/proto";
+option go_package = "github.com/LucasPluta/GoMicroserviceFramework/services/user-service/proto";
 
 service UserServiceService {
   rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) {}
@@ -413,8 +412,8 @@ make clean
 - Ensure it's in your PATH
 
 ### go module errors
-- Run `go mod tidy` in the service directory
+- Run `go mod tidy` in the **root directory** (the framework uses a single go.mod for all services)
 - Ensure `make setup-go` was run to download the Go toolchain
-- Verify Go version: check `go.mod` for required version
+- Verify Go version: check root `go.mod` for required version
 
 For more help, see the main [README.md](README.md).

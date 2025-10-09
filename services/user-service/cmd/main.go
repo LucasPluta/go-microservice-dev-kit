@@ -7,13 +7,13 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/LucasPluta/GoMicroserviceFramework/pkg/grpc"
 	"database/sql"
+	"github.com/LucasPluta/GoMicroserviceFramework/pkg/grpc"
 	"github.com/LucasPluta/GoMicroserviceFramework/pkg/database"
 	"github.com/LucasPluta/GoMicroserviceFramework/pkg/redis"
-	"user-service/internal/handler"
-	"user-service/internal/service"
-	pb "user-service/proto"
+	"github.com/LucasPluta/GoMicroserviceFramework/services/user-service/internal/handler"
+	"github.com/LucasPluta/GoMicroserviceFramework/services/user-service/internal/service"
+	pb "github.com/LucasPluta/GoMicroserviceFramework/services/user-service/proto"
 )
 
 func main() {

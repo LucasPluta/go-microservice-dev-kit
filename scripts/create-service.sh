@@ -114,9 +114,9 @@ EOF
 fi
 
 cat >> "${SERVICE_DIR}/cmd/main.go" <<EOF
-	"${SERVICE_NAME}/internal/handler"
-	"${SERVICE_NAME}/internal/service"
-	pb "${SERVICE_NAME}/proto"
+	"github.com/LucasPluta/GoMicroserviceFramework/services/${SERVICE_NAME}/internal/handler"
+	"github.com/LucasPluta/GoMicroserviceFramework/services/${SERVICE_NAME}/internal/service"
+	pb "github.com/LucasPluta/GoMicroserviceFramework/services/${SERVICE_NAME}/proto"
 )
 
 func main() {
@@ -321,8 +321,8 @@ cat > "${SERVICE_DIR}/internal/handler/handler.go" <<EOF
 package handler
 
 import (
-	"${SERVICE_NAME}/internal/service"
-	pb "${SERVICE_NAME}/proto"
+	"github.com/LucasPluta/GoMicroserviceFramework/services/${SERVICE_NAME}/internal/service"
+	pb "github.com/LucasPluta/GoMicroserviceFramework/services/${SERVICE_NAME}/proto"
 )
 
 type Handler struct {
@@ -347,7 +347,7 @@ syntax = "proto3";
 
 package ${PROTO_PACKAGE};
 
-option go_package = "${SERVICE_NAME}/proto";
+option go_package = "github.com/LucasPluta/GoMicroserviceFramework/services/${SERVICE_NAME}/proto";
 
 // ${SERVICE_NAME_PASCAL}Service provides methods for the ${SERVICE_NAME}
 service ${SERVICE_NAME_PASCAL}Service {
@@ -380,43 +380,8 @@ EOF
 
 lp-echo "Created proto/${SERVICE_NAME}.proto"
 
-# Create go.mod
-cat > "${SERVICE_DIR}/go.mod" <<EOF
-module ${SERVICE_NAME}
-
-go 1.21
-
-require (
-	github.com/LucasPluta/GoMicroserviceFramework v0.0.0
-	google.golang.org/grpc v1.67.1
-	google.golang.org/protobuf v1.34.2
-EOF
-
-if [ "$USE_POSTGRES" = true ]; then
-cat >> "${SERVICE_DIR}/go.mod" <<EOF
-	github.com/lib/pq v1.10.9
-EOF
-fi
-
-if [ "$USE_REDIS" = true ]; then
-cat >> "${SERVICE_DIR}/go.mod" <<EOF
-	github.com/go-redis/redis/v8 v8.11.5
-EOF
-fi
-
-if [ "$USE_NATS" = true ]; then
-cat >> "${SERVICE_DIR}/go.mod" <<EOF
-	github.com/nats-io/nats.go v1.31.0
-EOF
-fi
-
-cat >> "${SERVICE_DIR}/go.mod" <<EOF
-)
-
-replace github.com/LucasPluta/GoMicroserviceFramework => ../../
-EOF
-
-lp-echo "Created go.mod"
+# Note: Using monorepo structure with single go.mod at root
+# No per-service go.mod needed
 
 # Create README
 cat > "${SERVICE_DIR}/README.md" <<EOF

@@ -8,9 +8,9 @@ import (
 	"syscall"
 
 	"github.com/LucasPluta/GoMicroserviceFramework/pkg/grpc"
-	"health-service/internal/handler"
-	"health-service/internal/service"
-	pb "health-service/proto"
+	"github.com/LucasPluta/GoMicroserviceFramework/services/health-service/internal/handler"
+	"github.com/LucasPluta/GoMicroserviceFramework/services/health-service/internal/service"
+	pb "github.com/LucasPluta/GoMicroserviceFramework/services/health-service/proto"
 )
 
 func main() {

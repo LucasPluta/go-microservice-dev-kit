@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package exampleservice;
 
-option go_package = "example-service/proto";
+option go_package = "github.com/LucasPluta/GoMicroserviceFramework/services/example-service/proto";
 
 // ExampleServiceService provides methods for the example-service
 service ExampleServiceService {

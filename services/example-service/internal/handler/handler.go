@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"example-service/internal/service"
-	pb "example-service/proto"
+	"github.com/LucasPluta/GoMicroserviceFramework/services/example-service/internal/service"
+	pb "github.com/LucasPluta/GoMicroserviceFramework/services/example-service/proto"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

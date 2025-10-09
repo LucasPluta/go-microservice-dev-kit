@@ -15,9 +15,9 @@ import (
 	"github.com/LucasPluta/GoMicroserviceFramework/pkg/database"
 	"github.com/LucasPluta/GoMicroserviceFramework/pkg/redis"
 	"github.com/LucasPluta/GoMicroserviceFramework/pkg/nats"
-	"example-service/internal/handler"
-	"example-service/internal/service"
-	pb "example-service/proto"
+	"github.com/LucasPluta/GoMicroserviceFramework/services/example-service/internal/handler"
+	"github.com/LucasPluta/GoMicroserviceFramework/services/example-service/internal/service"
+	pb "github.com/LucasPluta/GoMicroserviceFramework/services/example-service/proto"
 )
 
 func main() {

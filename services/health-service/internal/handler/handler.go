@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"health-service/internal/service"
-	pb "health-service/proto"
+	"github.com/LucasPluta/GoMicroserviceFramework/services/health-service/internal/service"
+	pb "github.com/LucasPluta/GoMicroserviceFramework/services/health-service/proto"
 )
 
 type Handler struct {

@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package healthservice;
 
-option go_package = "health-service/proto";
+option go_package = "github.com/LucasPluta/GoMicroserviceFramework/services/health-service/proto";
 
 // HealthServiceService provides methods for the health-service
 service HealthServiceService {
