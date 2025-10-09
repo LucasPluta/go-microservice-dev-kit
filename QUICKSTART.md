@@ -374,16 +374,19 @@ make down
 make logs                    # All services
 make logs SERVICE=user-service  # Specific service
 
-# Build a service
+# Build a service for current platform
 make build SERVICE=user-service
+
+# Build for multiple architectures (linux/amd64, linux/arm64)
+make build-multiarch SERVICE=user-service
 
 # Build all services
 make build-all-services
 
-# Build Docker image
+# Build Docker image (requires pre-built binary)
 make docker-build SERVICE=user-service
 
-# Build multi-arch Docker image
+# Build multi-arch Docker images
 make docker-build-multiarch SERVICE=user-service REGISTRY=your-registry.io
 
 # Run tests

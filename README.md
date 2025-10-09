@@ -20,7 +20,12 @@ A comprehensive framework for quickly building, testing, and deploying Go micros
 - Protocol Buffers compiler (`protoc`)
 - gRPC Go plugins
 
-Install protoc plugins:
+Install protoc plugins (stored in `.gobincache/`):
+```bash
+make install-tools
+```
+
+Or manually:
 ```bash
 go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
 go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
@@ -89,13 +94,16 @@ services/<service-name>/
 4. **Implement gRPC handlers** in `internal/handler/handler.go`
 5. **Build the service**:
    ```bash
-   # Build binary
+   # Build binary for current platform
    make build SERVICE=<service-name>
    
-   # Or build Docker image
+   # Build binaries for linux/amd64 and linux/arm64
+   make build-multiarch SERVICE=<service-name>
+   
+   # Build Docker image (requires pre-built binary)
    make docker-build SERVICE=<service-name>
    
-   # Or build multi-arch image
+   # Build multi-arch Docker images
    make docker-build-multiarch SERVICE=<service-name> REGISTRY=your-registry.io
    ```
 
@@ -165,6 +173,20 @@ grpcurl -plaintext -d '{"service_id": "test"}' localhost:50051 <package>.<Servic
 # Call a streaming method
 grpcurl -plaintext -d '{"filter": "all", "limit": 10}' localhost:50051 <package>.<Service>/StreamData
 ```
+
+### CI/CD with GitHub Actions
+
+The framework includes automated CI/CD:
+
+- **Automated Testing**: Runs on every push to test all services
+- **Multi-Architecture Builds**: Builds binaries for linux/amd64 and linux/arm64
+- **Docker Image Creation**: Automatically builds Docker images on main branch
+- **Artifact Storage**: Build artifacts stored for 7 days
+
+Workflow runs on:
+- Push to `main` branch
+- Push to `copilot/**` branches
+- Pull requests to `main`
 
 ## Framework Packages
 
