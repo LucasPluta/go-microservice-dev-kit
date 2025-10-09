@@ -1,4 +1,4 @@
-.PHONY: help build build-service build-all-services build-multiarch docker-build docker-build-multiarch test proto clean up down logs create-service install-tools
+.PHONY: help build build-service build-all-services build-multiarch docker-build docker-build-multiarch test proto clean up down logs create-service install-tools setup-go
 
 # Default service name if not specified
 SERVICE ?= example-service
@@ -9,14 +9,21 @@ PLATFORMS ?= linux/amd64,linux/arm64
 # Docker registry (override with your registry)
 REGISTRY ?= localhost:5000
 
+# Setup Go toolchain
+SETUP_GO_SCRIPT := $(PWD)/scripts/setup-go.sh
+GO_ROOT := $(shell $(SETUP_GO_SCRIPT) 2>/dev/null || echo "")
+GO := $(GO_ROOT)/bin/go
+
 # Go binary cache directory
 GOBIN_CACHE := $(PWD)/.gobincache
 export GOBIN := $(GOBIN_CACHE)
-export PATH := $(GOBIN_CACHE):$(PATH)
+export PATH := $(GOBIN_CACHE):$(GO_ROOT)/bin:$(PATH)
+export GOROOT := $(GO_ROOT)
 
 help:
 	@echo "GoMicroserviceFramework - Available commands:"
 	@echo ""
+	@echo "  make setup-go                - Download and setup Go toolchain from go.mod"
 	@echo "  make up                      - Start all services with docker-compose"
 	@echo "  make down                    - Stop all services"
 	@echo "  make logs [SERVICE=name]     - View logs from services"
@@ -42,6 +49,12 @@ help:
 	@echo "  make proto SERVICE=notification-service"
 	@echo "  make create-service SERVICE=auth-service OPTS='--postgres --redis'"
 
+setup-go:
+	@echo "Setting up Go toolchain..."
+	@$(SETUP_GO_SCRIPT)
+	@echo "Go setup complete. Using: $(GO)"
+	@$(GO) version
+
 up:
 	docker-compose up -d
 
@@ -63,6 +76,11 @@ clean:
 	@rm -rf .gobincache/
 	@echo "Clean complete"
 
+clean-all: clean
+	@echo "Cleaning Go toolchain..."
+	@rm -rf .goroot/
+	@echo "Full clean complete"
+
 # Generate protobuf code for a specific service
 proto:
 ifndef SERVICE
@@ -82,33 +100,35 @@ endif
 	@echo "Protobuf code generated successfully"
 
 # Build a single service binary for the current platform
-build:
+build: setup-go
 ifndef SERVICE
 	@echo "Error: SERVICE name is required"
 	@echo "Usage: make build SERVICE=service-name"
 	@exit 1
 endif
 	@echo "Building $(SERVICE) for current platform..."
+	@echo "Using Go: $(GO)"
 	@if [ ! -d "services/$(SERVICE)" ]; then \
 		echo "Error: Service '$(SERVICE)' not found"; \
 		exit 1; \
 	fi
 	@mkdir -p bin
 	@cd services/$(SERVICE) && \
-		CGO_ENABLED=0 go build \
+		CGO_ENABLED=0 $(GO) build \
 		-ldflags='-w -s' \
 		-o ../../bin/$(SERVICE) \
 		./cmd/main.go
 	@echo "Built: bin/$(SERVICE)"
 
 # Build binaries for multiple architectures using Go cross-compilation
-build-multiarch:
+build-multiarch: setup-go
 ifndef SERVICE
 	@echo "Error: SERVICE name is required"
 	@echo "Usage: make build-multiarch SERVICE=service-name"
 	@exit 1
 endif
 	@echo "Building $(SERVICE) for multiple architectures..."
+	@echo "Using Go: $(GO)"
 	@if [ ! -d "services/$(SERVICE)" ]; then \
 		echo "Error: Service '$(SERVICE)' not found"; \
 		exit 1; \
@@ -116,13 +136,13 @@ endif
 	@mkdir -p bin
 	@echo "Building for linux/amd64..."
 	@cd services/$(SERVICE) && \
-		CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
+		CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GO) build \
 		-ldflags='-w -s' \
 		-o ../../bin/$(SERVICE)-linux-amd64 \
 		./cmd/main.go
 	@echo "Building for linux/arm64..."
 	@cd services/$(SERVICE) && \
-		CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build \
+		CGO_ENABLED=0 GOOS=linux GOARCH=arm64 $(GO) build \
 		-ldflags='-w -s' \
 		-o ../../bin/$(SERVICE)-linux-arm64 \
 		./cmd/main.go
@@ -205,12 +225,13 @@ endif
 	@echo "Multi-arch Docker image built and pushed: $(REGISTRY)/$(SERVICE):latest"
 
 # Run tests for all services
-test:
+test: setup-go
 	@echo "Running tests for all services..."
+	@echo "Using Go: $(GO)"
 	@for dir in services/*; do \
 		if [ -d "$$dir" ] && [ -f "$$dir/go.mod" ]; then \
 			echo "Testing $$(basename $$dir)..."; \
-			(cd "$$dir" && go test -v ./... || exit 1); \
+			(cd "$$dir" && $(GO) test -v ./... || exit 1); \
 		fi \
 	done
 	@echo "Tests complete"
@@ -225,9 +246,10 @@ endif
 	./scripts/create-service.sh $(SERVICE) $(OPTS)
 
 # Install development tools to .gobincache
-install-tools:
+install-tools: setup-go
 	@echo "Installing required tools to $(GOBIN_CACHE)..."
+	@echo "Using Go: $(GO)"
 	@mkdir -p $(GOBIN_CACHE)
-	go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
-	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+	$(GO) install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+	$(GO) install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 	@echo "Tools installed successfully to $(GOBIN_CACHE)"

@@ -45,3 +45,6 @@ build/
 
 # Go binary cache
 .gobincache/
+
+# Downloaded Go toolchain
+.goroot/
