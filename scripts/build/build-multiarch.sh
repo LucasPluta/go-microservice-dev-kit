@@ -23,7 +23,7 @@ if ! GO=$(get_go_binary); then
     exit 1
 fi
 
-lp-echo "Building ${SERVICE} for multiple architectures..."
+lp-quiet-echo "Building ${SERVICE} for multiple architectures..."
 
 SERVICE_DIR="${FRAMEWORK_ROOT}/services/${SERVICE}"
 BIN_DIR="${FRAMEWORK_ROOT}/bin"
@@ -32,25 +32,25 @@ BIN_DIR="${FRAMEWORK_ROOT}/bin"
 mkdir -p "$BIN_DIR"
 
 # Build for linux/amd64
-lp-echo "Building for linux/amd64..."
+lp-quiet-echo "Building for linux/amd64..."
 cd "$SERVICE_DIR"
 if ! CGO_ENABLED=0 GOOS=linux GOARCH=amd64 "$GO" build \
     -ldflags='-w -s' \
     -o "${BIN_DIR}/${SERVICE}-linux-amd64" \
-    ./cmd/main.go 2>&1 | grep -E '(^#|error|warning)' || true; then
+    ./cmd/main.go 2>&1; then
     exit 1
 fi
-lp-success "Built: ${BIN_DIR}/${SERVICE}-linux-amd64"
+lp-echo "Built: ${BIN_DIR}/${SERVICE}-linux-amd64"
 
 # Build for linux/arm64
-lp-echo "Building for linux/arm64..."
+lp-quiet-echo "Building for linux/arm64..."
 cd "$SERVICE_DIR"
 if ! CGO_ENABLED=0 GOOS=linux GOARCH=arm64 "$GO" build \
     -ldflags='-w -s' \
     -o "${BIN_DIR}/${SERVICE}-linux-arm64" \
-    ./cmd/main.go 2>&1 | grep -E '(^#|error|warning)' || true; then
+    ./cmd/main.go 2>&1; then
     exit 1
 fi
-lp-success "Built: ${BIN_DIR}/${SERVICE}-linux-arm64"
+lp-echo "Built: ${BIN_DIR}/${SERVICE}-linux-arm64"
 
-lp-success "Multi-arch build complete for ${SERVICE}"
+lp-echo "Multi-arch build complete for ${SERVICE}"
