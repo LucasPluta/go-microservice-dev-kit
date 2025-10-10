@@ -29,11 +29,15 @@ fi
 lp-echo "Generating protobuf code for ${SERVICE}..."
 lp-echo "Proto file: ${PROTO_FILE}"
 
-cd "$SERVICE_DIR"
-if ! protoc --go_out=. --go_opt=paths=source_relative \
-    --go-grpc_out=. --go-grpc_opt=paths=source_relative \
-    "proto/${SERVICE}.proto" 2>&1 | grep -E '(error|warning)' || true; then
-    :  # Success - no errors
+# Get protoc binary (will error if not installed)
+if ! PROTOC=$(get_protoc_binary); then
+    lp-error "Failed to get protoc binary. Run 'make setup-protoc' first"
+    exit 1
 fi
+
+cd "$SERVICE_DIR"
+$PROTOC --go_out=. --go_opt=paths=source_relative \
+    --go-grpc_out=. --go-grpc_opt=paths=source_relative \
+    "proto/${SERVICE}.proto" 2>&1
 
 lp-success "Protobuf code generated successfully for ${SERVICE}"

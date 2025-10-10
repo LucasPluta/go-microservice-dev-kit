@@ -36,7 +36,7 @@ cd "$SERVICE_DIR"
 if ! CGO_ENABLED=0 "$GO" build \
     -ldflags='-w -s' \
     -o "${BIN_DIR}/${SERVICE}" \
-    ./cmd/main.go 2>&1 | grep -E '(^#|error|warning)' || true; then
+    ./cmd/main.go ; then
     exit 1
 fi
 

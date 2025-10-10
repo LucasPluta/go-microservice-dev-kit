@@ -153,6 +153,75 @@ get_go_binary() {
     echo "${go_root}/bin/go"
 }
 
+get_protoc_binary() {
+    local protoc_version=${PROTOC_VERSION}
+    local os=$(uname -s | tr '[:upper:]' '[:lower:]')
+    local arch=$(uname -m)
+    
+    case "$os" in
+        linux*) os="linux" ;;
+        darwin*) os="darwin" ;;
+        *) 
+            lp-error "Unsupported OS: $os"
+            return 1
+            ;;
+    esac
+    
+    case "$arch" in
+        x86_64|amd64) arch="amd64" ;;
+        aarch64|arm64) arch="arm64" ;;
+        *)
+            lp-error "Unsupported architecture: $arch"
+            return 1
+            ;;
+    esac
+    
+    local protoc_root="${FRAMEWORK_ROOT}/.goroot/protoc-${protoc_version}.${os}-${arch}"
+    
+    if [ ! -x "${protoc_root}/bin/protoc" ]; then
+        lp-error "protoc toolchain not found at ${protoc_root}. Run 'make setup-protoc' first"
+        return 1
+    fi
+    
+    echo "${protoc_root}/bin/protoc"
+}   
+
+# Detect host OS and architecture
+detect_platform() {
+    local os=$(uname -s | tr '[:upper:]' '[:lower:]')
+    local arch=$(uname -m)
+    
+    case "$os" in
+        linux*)
+            OS="linux"
+            ;;
+        darwin*)
+            OS="darwin"
+            ;;
+        *)
+            lp-error "Unsupported OS: $os"
+            exit 1
+            ;;
+    esac
+    
+    case "$arch" in
+        x86_64|amd64)
+            ARCH="amd64"
+            ;;
+        aarch64|arm64)
+            ARCH="arm64"
+            ;;
+        *)
+            lp-error "Unsupported architecture: $arch"
+            exit 1
+            ;;
+    esac
+    
+    if [ "$QUIET_MODE" = false ]; then
+        lp-echo "Detected platform: ${OS}/${ARCH}"
+    fi
+}
+
 # Export common variables
 export FRAMEWORK_ROOT="${FRAMEWORK_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 export GOBIN_CACHE="${FRAMEWORK_ROOT}/.gobincache"

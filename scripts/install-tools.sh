@@ -17,14 +17,10 @@ mkdir -p "$GOBIN_CACHE"
 
 # Install protoc-gen-go
 lp-echo "Installing protoc-gen-go..."
-if ! "$GO" install google.golang.org/protobuf/cmd/protoc-gen-go@latest 2>&1 | grep -E '(error|warning)' || true; then
-    lp-success "Installed: protoc-gen-go"
-fi
+"$GO" install google.golang.org/protobuf/cmd/protoc-gen-go@latest 2>&1
 
 # Install protoc-gen-go-grpc
 lp-echo "Installing protoc-gen-go-grpc..."
-if ! "$GO" install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest 2>&1 | grep -E '(error|warning)' || true; then
-    lp-success "Installed: protoc-gen-go-grpc"
-fi
+"$GO" install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest 2>&1
 
 lp-success "Tools installed successfully to ${GOBIN_CACHE}"

@@ -1,13 +1,18 @@
 .PHONY: help build build-service build-all-services build-multiarch docker-build docker-build-multiarch test proto clean clean-all up down logs create-service install-tools setup-go
 
 # Default service name if not specified
-SERVICE ?= example-service
+SERVICE=example-service
 
 # Docker registry (override with your registry)
-REGISTRY ?= localhost:5000
+REGISTRY=localhost:5000
 
 # Scripts directory
-SCRIPTS_DIR := $(PWD)/scripts
+SCRIPTS_DIR=$(PWD)/scripts
+
+# Add .gobincache to the PATH
+PATH:=$(PWD)/.gobincache:$(PWD)/.gobincache:$(PATH)
+
+PROTOC_VERSION=31.1
 
 help:
 	@echo "GoMicroserviceFramework - Available commands:"
@@ -41,6 +46,9 @@ help:
 
 setup-go:
 	@$(SCRIPTS_DIR)/setup-go.sh
+
+setup-protoc:
+	@$(SCRIPTS_DIR)/setup-protoc.sh
 
 up:
 	@$(SCRIPTS_DIR)/up.sh
@@ -83,3 +91,8 @@ create-service:
 
 install-tools:
 	@$(SCRIPTS_DIR)/install-tools.sh
+
+export
+
+env:
+	printenv
