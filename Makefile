@@ -11,6 +11,10 @@ REGISTRY=localhost:5000
 
 # Scripts directory
 SCRIPTS_DIR=$(PWD)/scripts
+SETUP_SCRIPTS_DIR=$(SCRIPTS_DIR)/setup
+BUILD_SCRIPTS_DIR=$(SCRIPTS_DIR)/build
+TEST_SCRIPTS_DIR=$(SCRIPTS_DIR)/test
+DEVELOP_SCRIPTS_DIR=$(SCRIPTS_DIR)/develop
 
 # Add .gobincache to the PATH
 PATH:=$(PWD)/.gobincache:$(PWD)/.gobincache:$(PATH)

@@ -41,7 +41,7 @@ tmp/
 
 # Build artifacts
 dist/
-build/
+/build/
 
 # Go binary cache
 .gobincache/
