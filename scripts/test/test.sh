@@ -31,7 +31,7 @@ for service_dir in "$SERVICES_DIR"/*; do
         # Run tests and capture output
         if test_output=$(cd "$service_dir" && "$GO" test -v ./... 2>&1); then
             # Tests passed - show only summary
-            echo "$test_output" | grep -E '^(PASS|ok|SKIP|=== RUN|--- PASS|--- FAIL)'
+            echo "$test_output"
             lp-success "Tests passed for ${service_name}"
             test_count=$((test_count + 1))
         else

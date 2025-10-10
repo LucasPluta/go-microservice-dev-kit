@@ -8,12 +8,15 @@ import (
 	"syscall"
 
 	"database/sql"
-	"github.com/LucasPluta/GoMicroserviceFramework/pkg/grpc"
+
 	"github.com/LucasPluta/GoMicroserviceFramework/pkg/database"
+	"github.com/LucasPluta/GoMicroserviceFramework/pkg/grpc"
 	"github.com/LucasPluta/GoMicroserviceFramework/pkg/redis"
 	"github.com/LucasPluta/GoMicroserviceFramework/services/user-service/internal/handler"
 	"github.com/LucasPluta/GoMicroserviceFramework/services/user-service/internal/service"
 	pb "github.com/LucasPluta/GoMicroserviceFramework/services/user-service/proto"
+
+	redisClient "github.com/go-redis/redis/v8"
 )
 
 func main() {
@@ -47,7 +50,7 @@ func main() {
 	}
 
 	// Initialize Redis connection if enabled
-	var redisClient *redis.Client
+	var redisClient *redisClient.Client
 	if getEnv("USE_REDIS", "false") == "true" {
 		redisConfig := redis.Config{
 			Host: getEnv("REDIS_HOST", "localhost"),

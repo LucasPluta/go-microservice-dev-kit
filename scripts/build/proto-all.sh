@@ -3,7 +3,7 @@
 # Source utilities
 source "$(dirname "$0")/../util.sh"
 
-lp-echo "Generating protobuf code for all services..."
+lp-quiet-echo "Generating protobuf code for all services..."
 
 # Find all services with proto directories
 SERVICES_DIR="services"
@@ -24,7 +24,7 @@ for service_dir in "$SERVICES_DIR"/*; do
     
     # Check if service has a proto directory with .proto files
     if [ -d "$proto_dir" ] && ls "$proto_dir"/*.proto &>/dev/null; then
-        lp-echo "Generating proto for service: $service"
+        lp-quiet-echo "Generating proto for service: $service"
         
         # Call proto.sh for this service
         if ! "$(dirname "$0")/proto.sh" "$service"; then
@@ -39,4 +39,4 @@ if [ ${#FAILED_SERVICES[@]} -gt 0 ]; then
     exit 1
 fi
 
-lp-success "✓ Generated protobuf code for all services"
+lp-quiet-echo "Generated protobuf code for all services"

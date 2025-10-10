@@ -9,48 +9,6 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/../util.sh"
 
-# Parse arguments
-QUIET_MODE=false
-if [ "${1:-}" = "--quiet" ]; then
-    QUIET_MODE=true
-fi
-
-# Detect host OS and architecture
-detect_platform() {
-    local os=$(uname -s | tr '[:upper:]' '[:lower:]')
-    local arch=$(uname -m)
-    
-    case "$os" in
-        linux*)
-            OS="linux"
-            ;;
-        darwin*)
-            OS="darwin"
-            ;;
-        *)
-            lp-error "Unsupported OS: $os"
-            exit 1
-            ;;
-    esac
-    
-    case "$arch" in
-        x86_64|amd64)
-            ARCH="amd64"
-            ;;
-        aarch64|arm64)
-            ARCH="arm64"
-            ;;
-        *)
-            lp-error "Unsupported architecture: $arch"
-            exit 1
-            ;;
-    esac
-    
-    if [ "$QUIET_MODE" = false ]; then
-        lp-echo "Detected platform: ${OS}/${ARCH}"
-    fi
-}
-
 # Extract Go version from go.mod
 get_go_version() {
     if [ ! -f "go.mod" ]; then
@@ -66,9 +24,7 @@ get_go_version() {
         exit 1
     fi
     
-    if [ "$QUIET_MODE" = false ]; then
-        lp-echo "Go version from go.mod: ${GO_VERSION}"
-    fi
+    lp-quiet-echo "Go version from go.mod: ${GO_VERSION}"
 }
 
 # Check if Go is already downloaded
@@ -78,9 +34,7 @@ check_existing_go() {
     if [ -d "$go_dir" ] && [ -x "$go_dir/bin/go" ]; then
         local installed_version=$("$go_dir/bin/go" version | awk '{print $3}' | sed 's/go//')
         if [ "$installed_version" = "$GO_VERSION" ]; then
-            if [ "$QUIET_MODE" = false ]; then
-                lp-echo "Go ${GO_VERSION} already installed at $go_dir"
-            fi
+            lp-quiet-echo "Go ${GO_VERSION} already installed at $go_dir"
             # Don't output path to stdout - it causes nested logging issues
             return 0
         else

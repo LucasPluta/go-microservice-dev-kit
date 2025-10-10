@@ -3,6 +3,8 @@
 
 .PHONY: help all env
 
+SHELL := /bin/bash
+
 # Default service name if not specified
 SERVICE=example-service
 
@@ -21,6 +23,8 @@ PATH:=$(PWD)/.gobincache:$(PWD)/.gobincache:$(PATH)
 
 PROTOC_VERSION=31.1
 
+QUIET_MODE=true
+
 # Export all variables to sub-makefiles
 export
 
@@ -31,8 +35,10 @@ include scripts/test/test.mk
 include scripts/develop/develop.mk
 
 # Default target
-all: setup build test
-	@echo "✓ All tasks complete!"
+all: 
+	@make setup
+	@make build
+	@make test
 
 # Help menu
 help:
@@ -80,4 +86,4 @@ help:
 
 # Environment inspection
 env:
-	printenv
+	$(load_env) printenv

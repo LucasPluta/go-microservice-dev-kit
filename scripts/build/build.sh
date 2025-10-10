@@ -2,7 +2,7 @@
 
 # Source utilities (includes set -euo pipefail)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$(dirname "$0")/../util.sh""
+source "$(dirname "$0")/../util.sh"
 
 SERVICE="${1:-}"
 
@@ -23,7 +23,7 @@ if ! GO=$(get_go_binary); then
     exit 1
 fi
 
-lp-echo "Building ${SERVICE} for current platform..."
+lp-quiet-echo "Building ${SERVICE} for current platform..."
 
 SERVICE_DIR="${FRAMEWORK_ROOT}/services/${SERVICE}"
 BIN_DIR="${FRAMEWORK_ROOT}/bin"
@@ -31,7 +31,7 @@ BIN_DIR="${FRAMEWORK_ROOT}/bin"
 # Create bin directory
 mkdir -p "$BIN_DIR"
 
-lp-echo "Compiling binary..."
+lp-quiet-echo "Compiling binary..."
 cd "$SERVICE_DIR"
 if ! CGO_ENABLED=0 "$GO" build \
     -ldflags='-w -s' \
@@ -40,4 +40,4 @@ if ! CGO_ENABLED=0 "$GO" build \
     exit 1
 fi
 
-lp-success "Built: ${BIN_DIR}/${SERVICE}"
+lp-echo "Built: ${BIN_DIR}/${SERVICE}"

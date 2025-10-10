@@ -9,12 +9,6 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/../util.sh"
 
-# Parse arguments
-QUIET_MODE=false
-if [ "${1:-}" = "--quiet" ]; then
-    QUIET_MODE=true
-fi
-
 # Check if protoc is already downloaded
 check_existing_protoc() {
     local protoc_dir=".goroot/protoc-${PROTOC_VERSION}.${OS}-${ARCH}"
@@ -22,15 +16,11 @@ check_existing_protoc() {
     if [ -d "$protoc_dir" ] && [ -x "$protoc_dir/bin/protoc" ]; then
         local installed_version=$("$protoc_dir/bin/protoc" --version | awk '{print $2}')
         if [ "$installed_version" = "$PROTOC_VERSION" ]; then
-            if [ "$QUIET_MODE" = false ]; then
-                lp-echo "protoc ${PROTOC_VERSION} already installed at $protoc_dir"
-            fi
+            lp-quiet-echo "protoc ${PROTOC_VERSION} already installed at $protoc_dir"
             # Don't output path to stdout - it causes nested logging issues
             return 0
         else
-            if [ "$QUIET_MODE" = false ]; then
-                lp-warn "Found Go at $go_dir but version mismatch. Will re-download."
-            fi
+            lp-warn "Found Go at $go_dir but version mismatch. Will re-download."
             rm -rf "$go_dir"
         fi
     fi

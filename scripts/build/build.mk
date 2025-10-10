@@ -3,8 +3,9 @@
 .PHONY: build build-service build-all-services build-multiarch docker-build docker-build-multiarch proto proto-all
 
 # Build everything (all services for all architectures)
-build: proto-all build-all-services
-	@echo "✓ Build complete! All services compiled."
+build:
+	@make proto-all
+	@make build-all-services
 
 # Generate protobuf code for all services
 proto-all:

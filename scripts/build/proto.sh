@@ -2,7 +2,7 @@
 
 # Source utilities (includes set -euo pipefail)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$(dirname "$0")/../util.sh""
+source "$(dirname "$0")/../util.sh"
 
 SERVICE="${1:-}"
 
@@ -26,8 +26,8 @@ if [ ! -f "$PROTO_FILE" ]; then
     exit 0
 fi
 
-lp-echo "Generating protobuf code for ${SERVICE}..."
-lp-echo "Proto file: ${PROTO_FILE}"
+lp-quiet-echo "Generating protobuf code for ${SERVICE}..."
+lp-quiet-echo "Proto file: ${PROTO_FILE}"
 
 # Get protoc binary (will error if not installed)
 if ! PROTOC=$(get_protoc_binary); then
@@ -40,4 +40,4 @@ $PROTOC --go_out=. --go_opt=paths=source_relative \
     --go-grpc_out=. --go-grpc_opt=paths=source_relative \
     "proto/${SERVICE}.proto" 2>&1
 
-lp-success "Protobuf code generated successfully for ${SERVICE}"
+lp-echo "Protobuf code generated successfully for ${SERVICE}"

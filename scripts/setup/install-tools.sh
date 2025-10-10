@@ -10,17 +10,17 @@ if ! GO=$(get_go_binary); then
     exit 1
 fi
 
-lp-echo "Installing required tools to ${GOBIN_CACHE}..."
+lp-quiet-echo "Installing required tools to ${GOBIN_CACHE}..."
 
 # Create directory
 mkdir -p "$GOBIN_CACHE"
 
 # Install protoc-gen-go
-lp-echo "Installing protoc-gen-go..."
+lp-quiet-echo "Installing protoc-gen-go..."
 "$GO" install google.golang.org/protobuf/cmd/protoc-gen-go@latest 2>&1
 
 # Install protoc-gen-go-grpc
-lp-echo "Installing protoc-gen-go-grpc..."
+lp-quiet-echo "Installing protoc-gen-go-grpc..."
 "$GO" install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest 2>&1
 
-lp-success "Tools installed successfully to ${GOBIN_CACHE}"
+lp-echo "All tools are installed in ${GOBIN_CACHE}"

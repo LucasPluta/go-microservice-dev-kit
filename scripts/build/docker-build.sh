@@ -2,7 +2,7 @@
 
 # Source utilities (includes set -euo pipefail)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$(dirname "$0")/../util.sh""
+source "$(dirname "$0")/../util.sh"
 
 SERVICE="${1:-}"
 

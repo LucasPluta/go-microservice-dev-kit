@@ -28,8 +28,7 @@ error_trap() {
     local timestamp=$(date '+%H:%M:%S')
     local failed_command="${BASH_COMMAND}"
     
-    echo -e "${GREY}[${timestamp}][${script_name}:${line_number}]${NC} - ${RED}ERROR:${NC} Command failed with exit code ${exit_code}" >&2
-    echo -e "${GREY}[${timestamp}][${script_name}:${line_number}]${NC} - ${RED}Failed command:${NC} ${failed_command}" >&2
+    echo -e "${GREY}[${timestamp}][${script_name}:${line_number}]${NC} - ${RED}ERROR:${NC} Exit code ${exit_code} returned from command: '${failed_command}'" >&2
     exit $exit_code
 }
 
@@ -46,44 +45,89 @@ lp-echo() {
     local caller_info="${BASH_SOURCE[1]}"
     local line_number="${BASH_LINENO[0]}"
     
-    # Extract just the script name from full path
-    local script_name=$(basename "$caller_info")
-    
+    local script_name=${caller_info}
+    script_name=$(cd "$(dirname "$script_name")" && pwd)/$(basename "$script_name")
+    script_name=$(echo "$script_name" | sed "s|^$PWD/||")
+    script_name=$(echo "$script_name" | sed -E 's|.*/(scripts/.*)$|\1|')
+   
     # Format: [HH:mm:ss][script.sh:lineNumber] - message
     echo -e "${GREY}[${timestamp}][${script_name}:${line_number}]${NC} - ${message}"
+}
+
+# Only prints if QUIET_MODE is false
+lp-quiet-echo() {
+    if [ "${QUIET_MODE:-false}" = true ]; then
+        return 0
+    fi
+
+    local message="$*"
+    local timestamp=$(date '+%H:%M:%S')
+    
+    # Get the caller information
+    local caller_info="${BASH_SOURCE[1]}"
+    local line_number="${BASH_LINENO[0]}"
+    
+    local script_name=${caller_info}
+    script_name=$(cd "$(dirname "$script_name")" && pwd)/$(basename "$script_name")
+    script_name=$(echo "$script_name" | sed "s|^$PWD/||")
+    script_name=$(echo "$script_name" | sed -E 's|.*/(scripts/.*)$|\1|')
+   
+    # Format: [HH:mm:ss][script.sh:lineNumber] - message
+    echo -e "${GREY}[${timestamp}][${script_name}:${line_number}]${NC} - ${message}"  
 }
 
 # Error logging function
 lp-error() {
     local message="$*"
     local timestamp=$(date '+%H:%M:%S')
+    
+    # Get the caller information
     local caller_info="${BASH_SOURCE[1]}"
     local line_number="${BASH_LINENO[0]}"
-    local script_name=$(basename "$caller_info")
     
-    echo -e "${GREY}[${timestamp}][${script_name}:${line_number}]${NC} - ${RED}ERROR:${NC} ${message}" >&2
+    local script_name=${caller_info}
+    script_name=$(cd "$(dirname "$script_name")" && pwd)/$(basename "$script_name")
+    script_name=$(echo "$script_name" | sed "s|^$PWD/||")
+    script_name=$(echo "$script_name" | sed -E 's|.*/(scripts/.*)$|\1|')
+   
+    # Format: [HH:mm:ss][script.sh:lineNumber] - message
+    echo -e "${GREY}[${timestamp}][${script_name}:${line_number}]${NC} - ${RED}ERROR: ${message}${NC}" >&2
 }
 
 # Success logging function
 lp-success() {
     local message="$*"
     local timestamp=$(date '+%H:%M:%S')
+    
+    # Get the caller information
     local caller_info="${BASH_SOURCE[1]}"
     local line_number="${BASH_LINENO[0]}"
-    local script_name=$(basename "$caller_info")
     
-    echo -e "${GREY}[${timestamp}][${script_name}:${line_number}]${NC} - ${GREEN}✓${NC} ${message}"
+    local script_name=${caller_info}
+    script_name=$(cd "$(dirname "$script_name")" && pwd)/$(basename "$script_name")
+    script_name=$(echo "$script_name" | sed "s|^$PWD/||")
+    script_name=$(echo "$script_name" | sed -E 's|.*/(scripts/.*)$|\1|')
+   
+    # Format: [HH:mm:ss][script.sh:lineNumber] - message
+    echo -e "${GREY}[${timestamp}][${script_name}:${line_number}]${NC} - ${GREEN}✓ ${message}${NC}"
 }
 
 # Warning logging function
 lp-warn() {
     local message="$*"
     local timestamp=$(date '+%H:%M:%S')
+    
+    # Get the caller information
     local caller_info="${BASH_SOURCE[1]}"
     local line_number="${BASH_LINENO[0]}"
-    local script_name=$(basename "$caller_info")
     
-    echo -e "${GREY}[${timestamp}][${script_name}:${line_number}]${NC} - ${YELLOW}WARNING:${NC} ${message}"
+    local script_name=${caller_info}
+    script_name=$(cd "$(dirname "$script_name")" && pwd)/$(basename "$script_name")
+    script_name=$(echo "$script_name" | sed "s|^$PWD/||")
+    script_name=$(echo "$script_name" | sed -E 's|.*/(scripts/.*)$|\1|')
+   
+    # Format: [HH:mm:ss][script.sh:lineNumber] - message    
+    echo -e "${GREY}[${timestamp}][${script_name}:${line_number}]${NC} - ${YELLOW}WARNING: ${message}${NC}"
 }
 
 # Check if a command exists
@@ -188,15 +232,20 @@ get_protoc_binary() {
 
 # Detect host OS and architecture
 detect_platform() {
+    # if OS and ARCH are already set, skip detection
+    if [ -n "${OS:-}" ] && [ -n "${ARCH:-}" ]; then
+        return
+    fi
+
     local os=$(uname -s | tr '[:upper:]' '[:lower:]')
     local arch=$(uname -m)
     
     case "$os" in
         linux*)
-            OS="linux"
+            export OS="linux"
             ;;
         darwin*)
-            OS="darwin"
+            export OS="darwin"
             ;;
         *)
             lp-error "Unsupported OS: $os"
@@ -206,10 +255,10 @@ detect_platform() {
     
     case "$arch" in
         x86_64|amd64)
-            ARCH="amd64"
+            export ARCH="amd64"
             ;;
         aarch64|arm64)
-            ARCH="arm64"
+            export ARCH="arm64"
             ;;
         *)
             lp-error "Unsupported architecture: $arch"
@@ -217,9 +266,13 @@ detect_platform() {
             ;;
     esac
     
-    if [ "$QUIET_MODE" = false ]; then
-        lp-echo "Detected platform: ${OS}/${ARCH}"
-    fi
+    lp-quiet-echo "Detected platform: ${OS}/${ARCH}"
+}
+
+ci-make() {
+    local timestamp=$(date '+%H:%M:%S')
+    echo -e "${gray}[$timestamp]:${nc} Running: ${cyan}make $@${nc}"
+    make $@
 }
 
 # Export common variables

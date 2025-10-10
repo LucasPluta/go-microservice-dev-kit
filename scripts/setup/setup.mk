@@ -3,8 +3,10 @@
 .PHONY: setup setup-go setup-protoc install-tools
 
 # Setup everything (Go toolchain, protoc, and development tools)
-setup: setup-go setup-protoc install-tools
-	@echo "✓ Setup complete! Framework is ready to use."
+setup:
+	@make setup-go
+	@make setup-protoc
+	@make install-tools
 
 # Download and setup Go toolchain from go.mod
 setup-go:
