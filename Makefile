@@ -20,11 +20,11 @@ PROTOC_VERSION=31.1
 # Export all variables to sub-makefiles
 export
 
-# Import modular makefiles
-include setup.mk
-include build.mk
-include test.mk
-include develop.mk
+# Import modular makefiles from organized subdirectories
+include scripts/setup/setup.mk
+include scripts/build/build.mk
+include scripts/test/test.mk
+include scripts/develop/develop.mk
 
 # Default target
 all: setup build test
@@ -52,6 +52,7 @@ help:
 	@echo "  make docker-build SERVICE=name     - Build Docker image for a service"
 	@echo "  make docker-build-multiarch SERVICE=name - Build multi-arch Docker images"
 	@echo "  make proto SERVICE=name            - Generate protobuf code for a service"
+	@echo "  make proto-all                     - Generate protobuf code for all services"
 	@echo ""
 	@echo "Test commands (test.mk):"
 	@echo "  make test-all                - Run all tests"

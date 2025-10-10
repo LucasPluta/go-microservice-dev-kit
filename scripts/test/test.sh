@@ -2,7 +2,7 @@
 
 # Source utilities (includes set -euo pipefail)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "${SCRIPT_DIR}/util.sh"
+source "${SCRIPT_DIR}/../util.sh"
 
 # Get Go binary (will error if not installed)
 if ! GO=$(get_go_binary); then
@@ -18,14 +18,25 @@ failed_count=0
 
 # Find all services and run tests
 for service_dir in "$SERVICES_DIR"/*; do
-    if [ -d "$service_dir" ] && [ -f "$service_dir/go.mod" ]; then
+    if [ -d "$service_dir" ]; then
         service_name=$(basename "$service_dir")
+        
+        # Check if service has any Go files
+        if ! find "$service_dir" -name "*.go" -type f | grep -q .; then
+            continue
+        fi
+        
         lp-echo "Testing ${service_name}..."
         
-        if (cd "$service_dir" && "$GO" test -v ./... 2>&1 | grep -E '(^(PASS|FAIL|ok|SKIP)|error)'); then
+        # Run tests and capture output
+        if test_output=$(cd "$service_dir" && "$GO" test -v ./... 2>&1); then
+            # Tests passed - show only summary
+            echo "$test_output" | grep -E '^(PASS|ok|SKIP|=== RUN|--- PASS|--- FAIL)'
             lp-success "Tests passed for ${service_name}"
             test_count=$((test_count + 1))
         else
+            # Tests failed - show full output for debugging
+            echo "$test_output"
             lp-error "Tests failed for ${service_name}"
             failed_count=$((failed_count + 1))
         fi
@@ -33,7 +44,7 @@ for service_dir in "$SERVICES_DIR"/*; do
 done
 
 if [ $test_count -eq 0 ]; then
-    lp-warn "No services found to test in ${SERVICES_DIR}"
+    lp-warn "No services with Go files found to test in ${SERVICES_DIR}"
 elif [ $failed_count -eq 0 ]; then
     lp-success "All ${test_count} service(s) passed tests"
 else

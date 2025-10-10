@@ -4,7 +4,7 @@
 
 # Source utilities (includes set -euo pipefail)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "${SCRIPT_DIR}/util.sh"
+source "${SCRIPT_DIR}/../util.sh"
 
 # Check if service name is provided
 if [ -z "$1" ]; then
