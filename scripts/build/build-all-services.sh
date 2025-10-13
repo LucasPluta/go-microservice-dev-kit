@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+# Source utilities (includes set -euo pipefail)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$(dirname "$0")/../util.sh"
+
+lp-quiet-echo "Building all services..."
+
+SERVICES_DIR="${FRAMEWORK_ROOT}/services"
+BUILD_SCRIPT="${SCRIPT_DIR}/build.sh"
+
+# Find all services
+service_count=0
+for service_dir in "$SERVICES_DIR"/*; do
+    if [ -d "$service_dir" ]; then
+        service_name=$(basename "$service_dir")
+        lp-quiet-echo "Building service: ${service_name}"
+        
+        if ! "$BUILD_SCRIPT" "$service_name"; then
+            lp-error "Failed to build ${service_name}"
+            exit 1
+        fi
+        
+        ((service_count++))
+    fi
+done
+
+if [ $service_count -eq 0 ]; then
+    lp-warn "No services found in ${SERVICES_DIR}"
+else
+    lp-quiet-echo "All ${service_count} services built successfully"
+fi

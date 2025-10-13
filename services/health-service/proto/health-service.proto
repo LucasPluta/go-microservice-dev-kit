@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package healthservice;
+
+option go_package = "github.com/LucasPluta/GoMicroserviceFramework/services/health-service/proto";
+
+// HealthServiceService provides methods for the health-service
+service HealthServiceService {
+  // Example unary RPC
+  rpc GetStatus(GetStatusRequest) returns (GetStatusResponse) {}
+  
+  // Example streaming RPC (server-side streaming)
+  rpc StreamData(StreamDataRequest) returns (stream StreamDataResponse) {}
+}
+
+message GetStatusRequest {
+  string service_id = 1;
+}
+
+message GetStatusResponse {
+  string status = 1;
+  string message = 2;
+}
+
+message StreamDataRequest {
+  string filter = 1;
+  int32 limit = 2;
+}
+
+message StreamDataResponse {
+  string data = 1;
+  int64 timestamp = 2;
+}
