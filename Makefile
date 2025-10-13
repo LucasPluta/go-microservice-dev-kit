@@ -5,6 +5,9 @@
 
 SHELL := /bin/bash
 
+# Set the default target to be "help" if no target is specified
+.DEFAULT_GOAL := help
+
 # Default service name if not specified
 SERVICE=example-service
 

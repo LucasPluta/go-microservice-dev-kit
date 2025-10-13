@@ -17,8 +17,20 @@ A comprehensive framework for quickly building, testing, and deploying Go micros
 ### Prerequisites
 
 - Docker and Docker Compose (for running services)
-- Protocol Buffers compiler (`protoc`)
-- **No Go installation required** - framework downloads it automatically
+- Make
+- **No Go/Protoc installation required** - framework downloads a repo-specific installation automatically
+
+### Help
+
+```bash
+make help
+```
+
+### TL;DR - Just run everything
+
+```bash
+make all
+```
 
 ### Setup
 
@@ -27,6 +39,9 @@ The framework is self-contained and downloads the Go toolchain automatically:
 ```bash
 # Download Go toolchain (version from go.mod)
 make setup-go
+
+# Download the pinned version of protoc (stored in `.goroot/`)
+make install-protoc
 
 # Install protoc plugins (stored in `.gobincache/`)
 make install-tools
