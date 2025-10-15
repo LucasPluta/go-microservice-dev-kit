@@ -45,7 +45,7 @@ func NewServerTLSConfig(config TLSConfig) (*tls.Config, error) {
 
 	tlsConfig := &tls.Config{
 		Certificates: []tls.Certificate{cert},
-		MinVersion:   tls.VersionTLS13, // Require TLS 1.3 or 1.2
+		MinVersion:   tls.VersionTLS12, // Require TLS 1.2 or higher
 		CipherSuites: GetSecureCipherSuites(),
 		// Prefer server's cipher suite order
 		PreferServerCipherSuites: true,
