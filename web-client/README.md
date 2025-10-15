@@ -91,8 +91,8 @@ Access the development server at http://localhost:3000
 The client uses [@bufbuild/connect](https://github.com/bufbuild/connect-es) for gRPC-Web communication:
 
 ```typescript
-import { createConnectTransport } from '@bufbuild/connect-web';
-import { createPromiseClient } from '@bufbuild/connect';
+import { createConnectTransport } from '@connectrpc/connect-web';
+import { createPromiseClient } from '@connectrpc/connect';
 import { ExampleServiceService } from './gen/example-service_connect';
 
 const transport = createConnectTransport({
