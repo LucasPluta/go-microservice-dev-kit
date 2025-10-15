@@ -1,6 +1,6 @@
-# GoMicroserviceFramework
+# Go Microservice Dev Kit
 
-A comprehensive framework for quickly building, testing, and deploying Go microservices with gRPC, PostgreSQL, Redis, and NATS support.
+A comprehensive dev kit for quickly building, testing, and deploying Go microservices with gRPC, PostgreSQL, Redis, and NATS support.
 
 ## Features
 
