@@ -205,7 +205,7 @@ cat >> "${SERVICE_DIR}/cmd/main.go" <<EOF
 
 	// Start server in a goroutine (supports both gRPC and Connect-RPC)
 	go func() {
-		if err := grpc.StartConnectServer(grpcServer, grpcPort); err != nil {
+		if err := grpc.StartConnectServer(grpcServer, nil, grpcPort); err != nil {
 			log.Fatalf("Failed to start gRPC server: %v", err)
 		}
 	}()
