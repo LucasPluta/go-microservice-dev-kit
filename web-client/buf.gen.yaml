@@ -1,0 +1,14 @@
+version: v1
+breaking:
+  use:
+    - FILE
+lint:
+  use:
+    - DEFAULT
+plugins:
+  - plugin: es
+    out: src/gen
+    opt: target=ts
+  - plugin: connect-es
+    out: src/gen
+    opt: target=ts

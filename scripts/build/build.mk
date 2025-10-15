@@ -1,6 +1,6 @@
 # build.mk - Build and compilation targets
 
-.PHONY: build build-service build-all-services build-multiarch docker-build docker-build-multiarch proto proto-all
+.PHONY: build build-service build-all-services build-multiarch build-web-client docker-build docker-build-multiarch docker-build-web proto proto-all
 
 # Build everything (all services for all architectures)
 build:
@@ -27,9 +27,17 @@ build-multiarch:
 build-all-services:
 	@$(BUILD_SCRIPTS_DIR)/build-all-services.sh
 
+# Build React web client
+build-web-client:
+	@$(BUILD_SCRIPTS_DIR)/build-web-client.sh
+
 # Build Docker image for a service (uses pre-built binary)
 docker-build:
 	@$(BUILD_SCRIPTS_DIR)/docker-build.sh $(SERVICE)
+
+# Build Docker image for web client
+docker-build-web:
+	@docker build -f Dockerfile.web -t web-client .
 
 # Build and push multi-arch Docker images
 docker-build-multiarch:

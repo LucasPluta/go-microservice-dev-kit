@@ -7,7 +7,8 @@ A comprehensive dev kit for quickly building, testing, and deploying Go microser
 - 🚀 **Quick Service Generation**: Create new microservices with a single command
 - 🔌 **Optional Integrations**: Choose PostgreSQL, Redis, and/or NATS for each service
 - 🌐 **gRPC Support**: Built-in support for both unary and streaming gRPC calls
-- 🐳 **Docker Ready**: Templated docker-compose configuration for easy deployment
+- �️ **Web Client**: React-based gRPC-Web client with TypeScript support
+- �🐳 **Docker Ready**: Templated docker-compose configuration for easy deployment
 - 🔒 **Public/Internal Services**: Configure services as public-facing or internal
 - 📦 **Modular Architecture**: Clean separation of concerns with handler, service, and proto layers
 - 🛠️ **Self-Contained**: No external Go installation required - downloads toolchain automatically
@@ -18,6 +19,7 @@ A comprehensive dev kit for quickly building, testing, and deploying Go microser
 
 - Docker and Docker Compose (for running services)
 - Make
+- Node.js 18+ and npm (for web client development)
 - **No Go/Protoc installation required** - framework downloads a repo-specific installation automatically
 
 ### Help
@@ -102,6 +104,31 @@ services/<service-name>/
 ```
 
 **Note:** Services use the root `Dockerfile` and `Makefile` for building.
+
+### Web Client
+
+The framework includes a React-based web client that communicates with gRPC services via gRPC-Web:
+
+```bash
+# Start everything (services + web client)
+make up
+# Access web interface at http://localhost:8080
+
+# Development mode (backend via Docker, React dev server locally)
+make dev-web-client
+# Access at http://localhost:3000
+
+# Build web client for production
+make build-web-client
+```
+
+Features:
+- **TypeScript integration** with auto-generated protobuf types
+- **gRPC-Web communication** through nginx proxy
+- **Real-time streaming** support for server-side streaming RPCs
+- **CORS handling** and proper error management
+
+See [WEB_CLIENT.md](WEB_CLIENT.md) for detailed setup and usage.
 
 ### Developing a Service
 

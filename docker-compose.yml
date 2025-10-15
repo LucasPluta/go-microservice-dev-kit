@@ -71,5 +71,21 @@ services:
       nats:
         condition: service_healthy
 
+  # Web client (nginx serving React app with gRPC-Web proxy)
+  web-client:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    ports:
+      - "8080:80"  # Web interface
+    depends_on:
+      example-service:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O-", "http://localhost/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   postgres_data:
