@@ -1,6 +1,6 @@
 # setup.mk - Setup and installation targets
 
-.PHONY: setup setup-go setup-protoc install-tools
+.PHONY: setup setup-go setup-protoc install-tools setup-tls generate-certs
 
 # Setup everything (Go toolchain, protoc, and development tools)
 setup:
@@ -19,3 +19,11 @@ setup-protoc:
 # Install required development tools (protoc plugins)
 install-tools:
 	@$(SETUP_SCRIPTS_DIR)/install-tools.sh
+
+# Generate TLS certificates for development
+generate-certs:
+	@$(SETUP_SCRIPTS_DIR)/generate-certs.sh
+
+# Setup TLS (generate certificates, build, and deploy with TLS)
+setup-tls:
+	@./setup-tls.sh

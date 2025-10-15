@@ -57,6 +57,8 @@ help:
 	@echo "  make setup-go                - Download and setup Go toolchain from go.mod"
 	@echo "  make setup-protoc            - Download and setup protoc compiler"
 	@echo "  make install-tools           - Install required development tools"
+	@echo "  make setup-tls               - Generate TLS certificates and enable TLS"
+	@echo "  make generate-certs          - Generate TLS certificates for development"
 	@echo ""
 	@echo "Build commands (build.mk):"
 	@echo "  make build-service SERVICE=name    - Build a specific service binary"

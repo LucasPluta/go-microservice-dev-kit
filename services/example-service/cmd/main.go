@@ -19,6 +19,7 @@ import (
 	pb "github.com/LucasPluta/GoMicroserviceFramework/services/example-service/proto"
 	redisclient "github.com/go-redis/redis/v8"
 	natslib "github.com/nats-io/nats.go"
+	"google.golang.org/grpc"
 )
 
 func main() {
@@ -27,9 +28,15 @@ func main() {
 	// Get configuration from environment
 	serviceName := getEnv("SERVICE_NAME", "example-service")
 	grpcPort := getEnv("GRPC_PORT", "50051")
+	useTLS := getEnv("USE_TLS", "false") == "true"
+	certFile := getEnv("TLS_CERT_FILE", "./certs/server-cert.pem")
+	keyFile := getEnv("TLS_KEY_FILE", "./certs/server-key.pem")
+	caFile := getEnv("TLS_CA_FILE", "./certs/ca-cert.pem")
+	requireClientAuth := getEnv("TLS_REQUIRE_CLIENT_AUTH", "false") == "true"
 
 	log.Printf("Service: %s", serviceName)
 	log.Printf("gRPC Port: %s", grpcPort)
+	log.Printf("TLS Enabled: %v", useTLS)
 
 	ctx := context.Background()
 
@@ -86,8 +93,23 @@ func main() {
 	// Create handlers
 	h := handler.NewHandler(svc)
 
-	// Create gRPC server
-	grpcServer := grpcpkg.NewConnectServer()
+	// Create gRPC server (with or without TLS)
+	var grpcServer *grpc.Server
+	if useTLS {
+		tlsConfig := grpcpkg.TLSConfig{
+			CertFile:   certFile,
+			KeyFile:    keyFile,
+			CAFile:     caFile,
+			ClientAuth: requireClientAuth,
+		}
+		var err error
+		grpcServer, err = grpcpkg.NewSecureConnectServer(tlsConfig)
+		if err != nil {
+			log.Fatalf("Failed to create secure gRPC server: %v", err)
+		}
+	} else {
+		grpcServer = grpcpkg.NewConnectServer()
+	}
 	pb.RegisterExampleServiceServiceServer(grpcServer, h)
 
 	// Create Connect-RPC handlers
@@ -96,7 +118,19 @@ func main() {
 
 	// Start server in a goroutine (supports both gRPC and Connect-RPC)
 	go func() {
-		if err := grpcpkg.StartConnectServer(grpcServer, connectMux, grpcPort); err != nil {
+		var err error
+		if useTLS {
+			tlsConfig := grpcpkg.TLSConfig{
+				CertFile:   certFile,
+				KeyFile:    keyFile,
+				CAFile:     caFile,
+				ClientAuth: requireClientAuth,
+			}
+			err = grpcpkg.StartSecureConnectServer(grpcServer, connectMux, tlsConfig, grpcPort)
+		} else {
+			err = grpcpkg.StartConnectServer(grpcServer, connectMux, grpcPort)
+		}
+		if err != nil {
 			log.Fatalf("Failed to start gRPC server: %v", err)
 		}
 	}()

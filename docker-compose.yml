@@ -52,6 +52,11 @@ services:
     environment:
       - SERVICE_NAME=example-service
       - GRPC_PORT=50051
+      - USE_TLS=true
+      - TLS_CERT_FILE=/certs/server-cert.pem
+      - TLS_KEY_FILE=/certs/server-key.pem
+      - TLS_CA_FILE=/certs/ca-cert.pem
+      - TLS_REQUIRE_CLIENT_AUTH=false
       - USE_POSTGRES=true
       - POSTGRES_HOST=postgres
       - POSTGRES_PORT=5432
@@ -77,12 +82,13 @@ services:
       context: .
       dockerfile: Dockerfile.web
     ports:
-      - "8080:80"  # Web interface
+      - "8080:80"    # HTTP (redirects to HTTPS)
+      - "8443:443"   # HTTPS
     depends_on:
       example-service:
         condition: service_started
     healthcheck:
-      test: ["CMD", "wget", "-q", "-O-", "http://localhost/health"]
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O-", "https://localhost/"]
       interval: 10s
       timeout: 5s
       retries: 5

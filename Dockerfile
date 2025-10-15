@@ -25,6 +25,11 @@ COPY --from=certs /usr/share/zoneinfo /usr/share/zoneinfo
 # Copy the pre-built binary for the target architecture
 COPY bin/${SERVICE_NAME}-${TARGETOS}-${TARGETARCH} /service
 
+# Copy TLS certificates for gRPC services
+COPY certs/server-cert.pem /certs/server-cert.pem
+COPY certs/server-key.pem /certs/server-key.pem
+COPY certs/ca-cert.pem /certs/ca-cert.pem
+
 # Expose gRPC port (default)
 EXPOSE 50051
 

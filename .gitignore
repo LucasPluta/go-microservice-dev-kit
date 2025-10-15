@@ -48,3 +48,10 @@ dist/
 
 # Downloaded Go toolchain
 .goroot/
+
+# TLS certificates and private keys (NEVER commit these!)
+certs/
+*.pem
+*.key
+*.crt
+*.csr
