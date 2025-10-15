@@ -139,7 +139,7 @@ function App() {
             id="streamLimit"
             type="number"
             value={streamLimit}
-            onChange={(e) => setStreamLimit(parseInt(e.target.value) || 1)}
+            onChange={(e) => setStreamLimit(parseInt(e.target.value, 10) || 1)}
             min="1"
             max="100"
           />
