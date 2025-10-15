@@ -7,17 +7,19 @@ WORKDIR /app
 COPY web-client/package*.json ./
 COPY web-client/tsconfig.json ./
 COPY web-client/buf.gen.yaml ./
+COPY web-client/buf.yaml ./
+COPY web-client/webpack.config.js ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install dependencies (including dev dependencies for build)
+RUN npm ci
 
 # Copy source code
 COPY web-client/src ./src
 COPY web-client/public ./public
-COPY services/example-service/proto ./proto
+COPY services/example-service/proto ../services/example-service/proto
 
 # Generate protobuf types and build the app
-RUN npm run proto && npm run build
+RUN npm run build
 
 # Production stage
 FROM nginx:alpine

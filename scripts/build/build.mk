@@ -7,6 +7,10 @@ build:
 	@make proto-all
 	@make build-all-services
 
+# Build the React web client
+build-web-client:
+	@$(BUILD_SCRIPTS_DIR)/build-web-client.sh
+
 # Generate protobuf code for all services
 proto-all:
 	@$(BUILD_SCRIPTS_DIR)/proto-all.sh
@@ -27,18 +31,14 @@ build-multiarch:
 build-all-services:
 	@$(BUILD_SCRIPTS_DIR)/build-all-services.sh
 
-# Build React web client
-build-web-client:
-	@$(BUILD_SCRIPTS_DIR)/build-web-client.sh
-
 # Build Docker image for a service (uses pre-built binary)
 docker-build:
 	@$(BUILD_SCRIPTS_DIR)/docker-build.sh $(SERVICE)
 
-# Build Docker image for web client
-docker-build-web:
-	@docker build -f Dockerfile.web -t web-client .
-
 # Build and push multi-arch Docker images
 docker-build-multiarch:
 	@$(BUILD_SCRIPTS_DIR)/docker-build-multiarch.sh $(SERVICE) $(REGISTRY)
+
+# Build Docker image for web client
+docker-build-web:
+	@docker build -f Dockerfile.web -t web-client:latest .

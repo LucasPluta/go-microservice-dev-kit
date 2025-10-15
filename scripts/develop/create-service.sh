@@ -199,13 +199,13 @@ cat >> "${SERVICE_DIR}/cmd/main.go" <<EOF
 	// Initialize service
 	svc := service.NewService(ctx$([ "$USE_POSTGRES" = true ] && echo ", db")$([ "$USE_REDIS" = true ] && echo ", redisClient")$([ "$USE_NATS" = true ] && echo ", nc"))
 
-	// Create gRPC server
-	grpcServer := grpc.NewServer()
+	// Create gRPC server with Connect-RPC support
+	grpcServer := grpc.NewConnectServer()
 	pb.Register${SERVICE_NAME_PASCAL}ServiceServer(grpcServer, handler.NewHandler(svc))
 
-	// Start server in a goroutine
+	// Start server in a goroutine (supports both gRPC and Connect-RPC)
 	go func() {
-		if err := grpc.StartServer(grpcServer, grpcPort); err != nil {
+		if err := grpc.StartConnectServer(grpcServer, grpcPort); err != nil {
 			log.Fatalf("Failed to start gRPC server: %v", err)
 		}
 	}()

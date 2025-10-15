@@ -3,21 +3,22 @@ package main
 import (
 	"context"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"database/sql"
 
-	redisclient "github.com/go-redis/redis/v8"
-	natslib "github.com/nats-io/nats.go"
-	grpcpkg "github.com/LucasPluta/GoMicroserviceFramework/pkg/grpc"
 	"github.com/LucasPluta/GoMicroserviceFramework/pkg/database"
-	"github.com/LucasPluta/GoMicroserviceFramework/pkg/redis"
+	grpcpkg "github.com/LucasPluta/GoMicroserviceFramework/pkg/grpc"
 	"github.com/LucasPluta/GoMicroserviceFramework/pkg/nats"
+	"github.com/LucasPluta/GoMicroserviceFramework/pkg/redis"
 	"github.com/LucasPluta/GoMicroserviceFramework/services/example-service/internal/handler"
 	"github.com/LucasPluta/GoMicroserviceFramework/services/example-service/internal/service"
 	pb "github.com/LucasPluta/GoMicroserviceFramework/services/example-service/proto"
+	redisclient "github.com/go-redis/redis/v8"
+	natslib "github.com/nats-io/nats.go"
 )
 
 func main() {
@@ -82,13 +83,20 @@ func main() {
 	// Initialize service
 	svc := service.NewService(ctx, db, redisClient, nc)
 
-	// Create gRPC server
-	grpcServer := grpcpkg.NewServer()
-	pb.RegisterExampleServiceServiceServer(grpcServer, handler.NewHandler(svc))
+	// Create handlers
+	h := handler.NewHandler(svc)
 
-	// Start server in a goroutine
+	// Create gRPC server
+	grpcServer := grpcpkg.NewConnectServer()
+	pb.RegisterExampleServiceServiceServer(grpcServer, h)
+
+	// Create Connect-RPC handlers
+	connectMux := http.NewServeMux()
+	handler.RegisterConnectHandlers(connectMux, h)
+
+	// Start server in a goroutine (supports both gRPC and Connect-RPC)
 	go func() {
-		if err := grpcpkg.StartServer(grpcServer, grpcPort); err != nil {
+		if err := grpcpkg.StartConnectServer(grpcServer, connectMux, grpcPort); err != nil {
 			log.Fatalf("Failed to start gRPC server: %v", err)
 		}
 	}()

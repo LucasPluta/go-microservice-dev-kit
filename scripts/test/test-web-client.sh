@@ -29,7 +29,7 @@ fi
 
 lp-success "npm $(npm --version) is available"
 
-# Check if buf is available
+# Navigate to web client directory
 WEB_CLIENT_DIR="${FRAMEWORK_ROOT}/web-client"
 cd "$WEB_CLIENT_DIR"
 
@@ -55,7 +55,25 @@ else
     exit 1
 fi
 
+# Test the build
+lp-echo "Testing webpack build..."
+if npm run build; then
+    lp-success "Webpack build successful"
+else
+    lp-error "Webpack build failed"
+    exit 1
+fi
+
+# Check if build artifacts exist
+if [ -f "build/index.html" ] && [ -n "$(ls build/*.js 2>/dev/null)" ]; then
+    lp-success "Build artifacts are present"
+else
+    lp-error "Build artifacts are missing"
+    exit 1
+fi
+
 lp-success "Web client setup test completed successfully!"
+lp-echo ""
 lp-echo "You can now run:"
 lp-echo "  make dev-web-client    # Start development server"
 lp-echo "  make build-web-client  # Build for production"
