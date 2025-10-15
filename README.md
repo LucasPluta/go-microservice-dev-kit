@@ -8,7 +8,7 @@ A comprehensive dev kit for quickly building, testing, and deploying Go microser
 - 🔌 **Optional Integrations**: Choose PostgreSQL, Redis, and/or NATS for each service
 - 🌐 **gRPC Support**: Built-in support for both unary and streaming gRPC calls
 - �️ **Web Client**: React-based gRPC-Web client with TypeScript support
-- �🐳 **Docker Ready**: Templated docker-compose configuration for easy deployment
+- 🐳 **Docker Ready**: Templated docker-compose configuration for easy deployment
 - 🔒 **Public/Internal Services**: Configure services as public-facing or internal
 - 📦 **Modular Architecture**: Clean separation of concerns with handler, service, and proto layers
 - 🛠️ **Self-Contained**: No external Go installation required - downloads toolchain automatically
