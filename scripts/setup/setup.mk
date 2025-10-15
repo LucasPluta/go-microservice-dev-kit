@@ -7,6 +7,7 @@ setup:
 	@make setup-go
 	@make setup-protoc
 	@make install-tools
+	@make generate-certs
 
 # Download and setup Go toolchain from go.mod
 setup-go:
@@ -23,7 +24,3 @@ install-tools:
 # Generate TLS certificates for development
 generate-certs:
 	@$(SETUP_SCRIPTS_DIR)/generate-certs.sh
-
-# Setup TLS (generate certificates, build, and deploy with TLS)
-setup-tls:
-	@./setup-tls.sh
