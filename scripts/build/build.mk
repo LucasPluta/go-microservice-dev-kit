@@ -6,6 +6,7 @@
 build:
 	@make proto-all
 	@make build-all-services
+	@make build-web-client
 
 # Build the React web client
 build-web-client:
