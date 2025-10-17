@@ -1,6 +1,6 @@
 # develop.mk - Development and maintenance targets
 
-.PHONY: up down logs create-service clean clean-all
+.PHONY: up down logs dev-web-client create-service clean clean-all
 
 # Start all services with docker-compose
 up:
@@ -13,6 +13,10 @@ down:
 # View logs from services
 logs:
 	@$(DEVELOP_SCRIPTS_DIR)/logs.sh $(SERVICE)
+
+# Start web client development server
+dev-web-client:
+	@$(DEVELOP_SCRIPTS_DIR)/dev-web-client.sh
 
 # Create a new service
 create-service:

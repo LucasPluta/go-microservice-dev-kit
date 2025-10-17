@@ -1,0 +1,41 @@
+# Multi-stage Dockerfile for serving React app with nginx
+FROM node:18-alpine AS build
+
+WORKDIR /app
+
+# Copy package files
+COPY web-client/package*.json ./
+COPY web-client/tsconfig.json ./
+COPY web-client/buf.gen.yaml ./
+COPY web-client/buf.yaml ./
+COPY web-client/webpack.config.js ./
+
+# Install dependencies (including dev dependencies for build)
+RUN npm ci
+
+# Copy source code
+COPY web-client/src ./src
+COPY web-client/public ./public
+COPY services/example-service/proto ../services/example-service/proto
+
+# Generate protobuf types and build the app
+RUN npm run build
+
+# Production stage
+FROM nginx:alpine
+
+# Copy custom nginx configuration
+COPY nginx/nginx.conf /etc/nginx/conf.d/default.conf
+
+# Copy TLS certificates
+COPY certs/server-cert.pem /etc/nginx/certs/server-cert.pem
+COPY certs/server-key.pem /etc/nginx/certs/server-key.pem
+COPY certs/ca-cert.pem /etc/nginx/certs/ca-cert.pem
+
+# Copy built React app
+COPY --from=build /app/build /usr/share/nginx/html
+
+# Expose port 80 (redirects to HTTPS) and 443 (HTTPS)
+EXPOSE 80 443
+
+CMD ["nginx", "-g", "daemon off;"]
