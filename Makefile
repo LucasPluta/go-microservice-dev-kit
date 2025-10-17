@@ -39,9 +39,7 @@ include scripts/develop/develop.mk
 
 # Default target
 all: 
-	@make setup
-	@make build
-	@make test
+	@$(SCRIPTS_DIR)/all.sh
 
 # Help menu
 help:

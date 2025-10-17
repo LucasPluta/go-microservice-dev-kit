@@ -1,13 +1,10 @@
-#!/usr/bin/env bash
+#!/bin/bash
+. "./scripts/util.sh"
 
 # Script to download and setup Go toolchain based on go.mod version
 # Supports: Linux and macOS on amd64 and arm64
 # Usage: setup-go.sh [--quiet]
 #   --quiet: Skip output if Go is already installed
-
-# Source utilities (includes set -euo pipefail)
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "${SCRIPT_DIR}/../util.sh"
 
 # Extract Go version from go.mod
 get_go_version() {

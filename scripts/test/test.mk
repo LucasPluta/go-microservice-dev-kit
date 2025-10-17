@@ -2,13 +2,13 @@
 
 .PHONY: test test-all test-web-client
 
-# Test everything (all services)
+# Test all
 test:
-	@make test-all
-
-# Run tests for all services
-test-all:
 	@$(TEST_SCRIPTS_DIR)/test.sh
+
+# Test (all services)
+test-services:
+	@$(TEST_SCRIPTS_DIR)/test-services.sh
 
 # Test web client setup
 test-web-client:

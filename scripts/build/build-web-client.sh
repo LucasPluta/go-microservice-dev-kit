@@ -1,8 +1,5 @@
-#!/usr/bin/env bash
-
-# Source utilities (includes set -euo pipefail)
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "${SCRIPT_DIR}/../util.sh"
+#!/bin/bash
+. "./scripts/util.sh"
 
 WEB_CLIENT_DIR="${FRAMEWORK_ROOT}/web-client"
 
@@ -24,10 +21,10 @@ fi
 
 # Generate protobuf types
 lp-echo "Generating protobuf TypeScript types..."
-npm run proto
+npm run build --silent > /dev/null
 
 # Build the React application
 lp-echo "Building React application..."
-npm run build
+npm run build --silent > /dev/null
 
-lp-success "Web client built successfully"
+lp-echo "Web client built successfully"

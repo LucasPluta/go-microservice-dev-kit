@@ -1,8 +1,5 @@
-#!/usr/bin/env bash
-
-# Source utilities (includes set -euo pipefail)
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "${SCRIPT_DIR}/../util.sh"
+#!/bin/bash
+. "./scripts/util.sh"
 
 # Get Go binary (will error if not installed)
 if ! GO=$(get_go_binary); then
@@ -23,4 +20,7 @@ lp-quiet-echo "Installing protoc-gen-go..."
 lp-quiet-echo "Installing protoc-gen-go-grpc..."
 "$GO" install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest 2>&1
 
-lp-echo "All tools are installed in ${GOBIN_CACHE}"
+# Get the relative path to GOBIN_CACHE, use basename
+GOBIN_RELATIVE=$(basename "$GOBIN_CACHE")
+
+lp-echo "All tools are installed in ${GOBIN_RELATIVE}"

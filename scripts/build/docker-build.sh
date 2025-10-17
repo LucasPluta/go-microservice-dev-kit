@@ -1,8 +1,5 @@
-#!/usr/bin/env bash
-
-# Source utilities (includes set -euo pipefail)
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$(dirname "$0")/../util.sh"
+#!/bin/bash
+. "./scripts/util.sh"
 
 SERVICE="${1:-}"
 
@@ -17,7 +14,7 @@ if ! validate_service "$SERVICE"; then
     exit 1
 fi
 
-lp-echo "Building Docker image for ${SERVICE}..."
+lp-quiet-echo "Building Docker image for ${SERVICE}..."
 
 BIN_DIR="${FRAMEWORK_ROOT}/bin"
 BINARY_PATH="${BIN_DIR}/${SERVICE}-linux-amd64"
@@ -29,13 +26,11 @@ if [ ! -f "$BINARY_PATH" ]; then
     "${SCRIPT_DIR}/build-multiarch.sh" "$SERVICE"
 fi
 
-lp-echo "Building Docker image..."
 cd "$FRAMEWORK_ROOT"
-docker build \
+SHA=$(docker build -q \
     --build-arg SERVICE_NAME="$SERVICE" \
-    --build-arg TARGETARCH=amd64 \
     --build-arg TARGETOS=linux \
     -t "${SERVICE}:latest" \
-    -f Dockerfile .
+    -f Dockerfile .)
 
-lp-success "Docker image built: ${SERVICE}:latest"
+lp-echo "Built: ${SERVICE}:latest - SHA: $SHA"

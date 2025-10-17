@@ -4,10 +4,7 @@
 
 # Setup everything (Go toolchain, protoc, and development tools)
 setup:
-	@make setup-go
-	@make setup-protoc
-	@make install-tools
-	@make generate-certs
+	@$(SETUP_SCRIPTS_DIR)/setup.sh
 
 # Download and setup Go toolchain from go.mod
 setup-go:

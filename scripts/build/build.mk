@@ -4,9 +4,7 @@
 
 # Build everything (all services for all architectures)
 build:
-	@make proto-all
-	@make build-all-services
-	@make build-web-client
+	@$(BUILD_SCRIPTS_DIR)/build.sh
 
 # Build the React web client
 build-web-client:
@@ -22,7 +20,7 @@ proto:
 
 # Build a specific service binary for current platform
 build-service:
-	@$(BUILD_SCRIPTS_DIR)/build.sh $(SERVICE)
+	@$(BUILD_SCRIPTS_DIR)/build-service.sh $(SERVICE)
 
 # Build service binaries for linux/amd64 and linux/arm64
 build-multiarch:
@@ -32,14 +30,20 @@ build-multiarch:
 build-all-services:
 	@$(BUILD_SCRIPTS_DIR)/build-all-services.sh
 
+build-all-services-multiarch:
+	@$(BUILD_SCRIPTS_DIR)/build-all-services-multiarch.sh
+
 # Build Docker image for a service (uses pre-built binary)
 docker-build:
 	@$(BUILD_SCRIPTS_DIR)/docker-build.sh $(SERVICE)
+
+docker-build-all:
+	@$(BUILD_SCRIPTS_DIR)/docker-build-all.sh
 
 # Build and push multi-arch Docker images
 docker-build-multiarch:
 	@$(BUILD_SCRIPTS_DIR)/docker-build-multiarch.sh $(SERVICE) $(REGISTRY)
 
 # Build Docker image for web client
-docker-build-web:
-	@docker build -f Dockerfile.web -t web-client:latest .
+docker-build-web-client:
+	@$(BUILD_SCRIPTS_DIR)/docker-build-web-client.sh

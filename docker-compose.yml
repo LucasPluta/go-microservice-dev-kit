@@ -82,8 +82,8 @@ services:
       context: .
       dockerfile: Dockerfile.web
     ports:
-      - "8080:80"    # HTTP (redirects to HTTPS)
-      - "8443:443"   # HTTPS
+      - "80:80"    # HTTP (redirects to HTTPS)
+      - "443:443"   # HTTPS
     depends_on:
       example-service:
         condition: service_started

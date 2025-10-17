@@ -5,19 +5,14 @@ lp-quiet-echo "Building all services..."
 
 SERVICES_DIR="${FRAMEWORK_ROOT}/services"
 
-BUILD_CMD=$1
-if [ -z "$BUILD_CMD" ]; then
-    BUILD_CMD="ci-make build-service"
-fi
-
 # Find all services
 service_count=0
 for service_dir in "$SERVICES_DIR"/*; do
     if [ -d "$service_dir" ]; then
         service_name=$(basename "$service_dir")
-        lp-quiet-echo "Building service: ${service_name}"
+        lp-quiet-echo "Building docker image: ${service_name}"
         
-        if ! ${BUILD_CMD} SERVICE="$service_name"; then
+        if ! ci-make docker-build SERVICE="$service_name"; then
             lp-error "Failed to build ${service_name}"
             exit 1
         fi

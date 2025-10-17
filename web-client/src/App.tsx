@@ -8,7 +8,7 @@ import { GetStatusRequest, StreamDataRequest } from './gen/example-service_pb';
 // Use HTTPS in production, HTTP in development (webpack proxy)
 const isDevelopment = process.env.NODE_ENV === 'development';
 const transport = createConnectTransport({
-  baseUrl: isDevelopment ? '/api' : 'https://localhost:8443/api', // This will be proxied by nginx to the gRPC service
+  baseUrl: isDevelopment ? '/api' : 'https://localhost:443/api', // This will be proxied by nginx to the gRPC service
 });
 
 // Create a client
