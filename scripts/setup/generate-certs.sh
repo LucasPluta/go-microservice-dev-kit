@@ -69,7 +69,7 @@ openssl x509 -req -days $DAYS_VALID -in "$CERTS_DIR/server.csr" \
 
 # Generate client private key (for mTLS if needed)
 lp-quiet-echo "Generating client private key..."
-openssl genrsa -out "$CERTS_DIR/client-key.pem" 4096
+openssl genrsa -out "$CERTS_DIR/client-key.pem" 4096 &> /dev/null
 
 # Generate client certificate signing request
 lp-quiet-echo "Generating client CSR..."
