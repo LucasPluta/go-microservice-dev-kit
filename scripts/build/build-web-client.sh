@@ -21,7 +21,7 @@ fi
 
 # Generate protobuf types
 lp-echo "Generating protobuf TypeScript types..."
-npm run build --silent > /dev/null
+npm run proto --silent > /dev/null
 
 # Build the React application
 lp-echo "Building React application..."
