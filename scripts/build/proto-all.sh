@@ -1,7 +1,5 @@
 #!/bin/bash
-
-# Source utilities
-source "$(dirname "$0")/../util.sh"
+. "./scripts/util.sh"
 
 lp-quiet-echo "Generating protobuf code for all services..."
 
@@ -27,7 +25,7 @@ for service_dir in "$SERVICES_DIR"/*; do
         lp-quiet-echo "Generating proto for service: $service"
         
         # Call proto.sh for this service
-        if ! "$(dirname "$0")/proto.sh" "$service"; then
+        if ! ci-make proto SERVICE="$service"; then
             lp-error "Failed to generate proto for $service"
             FAILED_SERVICES+=("$service")
         fi

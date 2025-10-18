@@ -1,8 +1,5 @@
-#!/usr/bin/env bash
-
-# Source utilities (includes set -euo pipefail)
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "${SCRIPT_DIR}/../util.sh"
+#!/bin/bash
+. "./scripts/util.sh"
 
 lp-echo "Testing web client setup..."
 
@@ -40,7 +37,7 @@ fi
 
 # Test protobuf generation
 lp-echo "Testing protobuf generation..."
-if npm run proto; then
+if npm run proto --silent > /dev/null; then
     lp-success "Protobuf generation successful"
 else
     lp-error "Protobuf generation failed"
@@ -57,7 +54,7 @@ fi
 
 # Test the build
 lp-echo "Testing webpack build..."
-if npm run build; then
+if npm run build --silent > /dev/null; then
     lp-success "Webpack build successful"
 else
     lp-error "Webpack build failed"
@@ -73,8 +70,3 @@ else
 fi
 
 lp-success "Web client setup test completed successfully!"
-lp-echo ""
-lp-echo "You can now run:"
-lp-echo "  make dev-web-client    # Start development server"
-lp-echo "  make build-web-client  # Build for production"
-lp-echo "  make up                # Start all services including web client"

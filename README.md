@@ -31,7 +31,11 @@ make help
 ### TL;DR - Just run everything
 
 ```bash
-make all
+# Setup, build, and test everything
+make all 
+
+# Start the full-stack
+make up
 ```
 
 ### Setup

@@ -1,8 +1,5 @@
-#!/usr/bin/env bash
-
-# Source utilities (includes set -euo pipefail)
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$(dirname "$0")/../util.sh"
+#!/bin/bash
+. "./scripts/util.sh"
 
 SERVICE="${1:-}"
 

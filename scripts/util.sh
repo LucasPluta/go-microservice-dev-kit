@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 # util.sh - Common utilities for GoMicroserviceFramework scripts
 # This file should be sourced by all other scripts in the framework
@@ -14,6 +14,7 @@ GREY='\033[0;90m'
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 # Error trap handler
@@ -270,8 +271,20 @@ detect_platform() {
 }
 
 ci-make() {
+    local message="$*"
     local timestamp=$(date '+%H:%M:%S')
-    echo -e "${gray}[$timestamp]:${nc} Running: ${cyan}make $@${nc}"
+    
+    # Get the caller information
+    local caller_info="${BASH_SOURCE[1]}"
+    local line_number="${BASH_LINENO[0]}"
+    
+    local script_name=${caller_info}
+    script_name=$(cd "$(dirname "$script_name")" && pwd)/$(basename "$script_name")
+    script_name=$(echo "$script_name" | sed "s|^$PWD/||")
+    script_name=$(echo "$script_name" | sed -E 's|.*/(scripts/.*)$|\1|')
+   
+    # Format: [HH:mm:ss][script.sh:lineNumber] - message
+    echo -e "${GREY}[${timestamp}][${script_name}:${line_number}]${NC} - ${CYAN}make $@${NC}"
     make $@
 }
 

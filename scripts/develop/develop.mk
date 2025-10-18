@@ -26,6 +26,10 @@ create-service:
 clean:
 	@$(DEVELOP_SCRIPTS_DIR)/clean.sh
 
-# Clean all artifacts including Go toolchain
+# Clean all artifacts including Go toolchain, and docker images
 clean-all:
 	@$(DEVELOP_SCRIPTS_DIR)/clean-all.sh
+	@make docker-clean
+
+docker-clean:
+	@docker system prune -a --volumes --force && docker network prune --force
