@@ -2,6 +2,8 @@
 
 .PHONY: up down logs dev-web-client create-service clean clean-all
 
+DEVELOP_SCRIPTS_DIR=$(SCRIPTS_DIR)/develop
+
 # Start all services with docker-compose
 up:
 	@$(DEVELOP_SCRIPTS_DIR)/up.sh

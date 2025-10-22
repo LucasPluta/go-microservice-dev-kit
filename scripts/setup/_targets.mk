@@ -2,6 +2,8 @@
 
 .PHONY: setup setup-go setup-protoc install-tools setup-tls generate-certs
 
+SETUP_SCRIPTS_DIR=$(SCRIPTS_DIR)/setup
+
 # Setup everything (Go toolchain, protoc, and development tools)
 setup:
 	@$(SETUP_SCRIPTS_DIR)/setup.sh

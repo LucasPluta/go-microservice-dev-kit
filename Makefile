@@ -16,10 +16,6 @@ REGISTRY=localhost:5000
 
 # Scripts directory
 SCRIPTS_DIR=$(PWD)/scripts
-SETUP_SCRIPTS_DIR=$(SCRIPTS_DIR)/setup
-BUILD_SCRIPTS_DIR=$(SCRIPTS_DIR)/build
-TEST_SCRIPTS_DIR=$(SCRIPTS_DIR)/test
-DEVELOP_SCRIPTS_DIR=$(SCRIPTS_DIR)/develop
 
 # Add .gobincache to the PATH
 PATH:=$(PWD)/.gobincache:$(PWD)/.gobincache:$(PATH)
@@ -32,10 +28,11 @@ QUIET_MODE=true
 export
 
 # Import modular makefiles from organized subdirectories
-include scripts/setup/setup.mk
-include scripts/build/build.mk
-include scripts/test/test.mk
-include scripts/develop/develop.mk
+include scripts/build/_targets.mk
+include scripts/develop/_targets.mk
+include scripts/kube/_targets.mk
+include scripts/setup/_targets.mk
+include scripts/test/_targets.mk
 
 # Default target
 all: 
@@ -51,14 +48,14 @@ help:
 	@echo "  make build                   - Build all services with proto generation"
 	@echo "  make test                    - Run tests for all services"
 	@echo ""
-	@echo "Setup commands (setup.mk):"
+	@echo "Setup commands (scripts/setup):"
 	@echo "  make setup-go                - Download and setup Go toolchain from go.mod"
 	@echo "  make setup-protoc            - Download and setup protoc compiler"
 	@echo "  make install-tools           - Install required development tools"
 	@echo "  make setup-tls               - Generate TLS certificates and enable TLS"
 	@echo "  make generate-certs          - Generate TLS certificates for development"
 	@echo ""
-	@echo "Build commands (build.mk):"
+	@echo "Build commands (scripts/build):"
 	@echo "  make build-service SERVICE=name    - Build a specific service binary"
 	@echo "  make build-multiarch SERVICE=name  - Build service for linux/amd64 and linux/arm64"
 	@echo "  make build-all-services            - Build all service binaries"
@@ -69,10 +66,10 @@ help:
 	@echo "  make proto SERVICE=name            - Generate protobuf code for a service"
 	@echo "  make proto-all                     - Generate protobuf code for all services"
 	@echo ""
-	@echo "Test commands (test.mk):"
+	@echo "Test commands (scripts/test):"
 	@echo "  make test-all                - Run all tests"
 	@echo ""
-	@echo "Development commands (develop.mk):"
+	@echo "Development commands (scripts/develop):"
 	@echo "  make up                      - Start all services with docker-compose"
 	@echo "  make down                    - Stop all services"
 	@echo "  make logs [SERVICE=name]     - View logs from services"

@@ -2,6 +2,8 @@
 
 .PHONY: test test-all test-web-client
 
+TEST_SCRIPTS_DIR=$(SCRIPTS_DIR)/test
+
 # Test all
 test:
 	@$(TEST_SCRIPTS_DIR)/test.sh
