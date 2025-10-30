@@ -2,6 +2,8 @@
 
 .PHONY: build build-service build-all-services build-multiarch build-web-client docker-build docker-build-multiarch docker-build-web proto proto-all
 
+BUILD_SCRIPTS_DIR=$(SCRIPTS_DIR)/build
+
 # Build everything (all services for all architectures)
 build:
 	@$(BUILD_SCRIPTS_DIR)/build.sh
