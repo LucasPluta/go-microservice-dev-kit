@@ -47,7 +47,6 @@ lp-echo() {
     local line_number="${BASH_LINENO[0]}"
     
     local script_name=${caller_info}
-    script_name=$(cd "$(dirname "$script_name")" && pwd)/$(basename "$script_name")
     script_name=$(echo "$script_name" | sed "s|^$PWD/||")
     script_name=$(echo "$script_name" | sed -E 's|.*/(scripts/.*)$|\1|')
    
@@ -69,7 +68,6 @@ lp-quiet-echo() {
     local line_number="${BASH_LINENO[0]}"
     
     local script_name=${caller_info}
-    script_name=$(cd "$(dirname "$script_name")" && pwd)/$(basename "$script_name")
     script_name=$(echo "$script_name" | sed "s|^$PWD/||")
     script_name=$(echo "$script_name" | sed -E 's|.*/(scripts/.*)$|\1|')
    
@@ -87,7 +85,6 @@ lp-error() {
     local line_number="${BASH_LINENO[0]}"
     
     local script_name=${caller_info}
-    script_name=$(cd "$(dirname "$script_name")" && pwd)/$(basename "$script_name")
     script_name=$(echo "$script_name" | sed "s|^$PWD/||")
     script_name=$(echo "$script_name" | sed -E 's|.*/(scripts/.*)$|\1|')
    
@@ -105,7 +102,6 @@ lp-success() {
     local line_number="${BASH_LINENO[0]}"
     
     local script_name=${caller_info}
-    script_name=$(cd "$(dirname "$script_name")" && pwd)/$(basename "$script_name")
     script_name=$(echo "$script_name" | sed "s|^$PWD/||")
     script_name=$(echo "$script_name" | sed -E 's|.*/(scripts/.*)$|\1|')
    
@@ -123,7 +119,6 @@ lp-warn() {
     local line_number="${BASH_LINENO[0]}"
     
     local script_name=${caller_info}
-    script_name=$(cd "$(dirname "$script_name")" && pwd)/$(basename "$script_name")
     script_name=$(echo "$script_name" | sed "s|^$PWD/||")
     script_name=$(echo "$script_name" | sed -E 's|.*/(scripts/.*)$|\1|')
    
@@ -279,7 +274,6 @@ ci-make() {
     local line_number="${BASH_LINENO[0]}"
     
     local script_name=${caller_info}
-    script_name=$(cd "$(dirname "$script_name")" && pwd)/$(basename "$script_name")
     script_name=$(echo "$script_name" | sed "s|^$PWD/||")
     script_name=$(echo "$script_name" | sed -E 's|.*/(scripts/.*)$|\1|')
    

@@ -4,12 +4,7 @@
 # Script to generate TLS certificates for development
 # In production, use proper certificates from a trusted CA (Let's Encrypt, etc.)
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-CERTS_DIR="$PROJECT_ROOT/certs"
-
-# Source utilities
-source "$SCRIPT_DIR/../util.sh"
+CERTS_DIR="certs"
 
 # Create certs directory
 mkdir -p "$CERTS_DIR"

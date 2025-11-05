@@ -1,13 +1,11 @@
 #!/bin/bash
+. "./scripts/util.sh"
 
 # populate-score-certs.sh
 # Helper script to populate TLS certificates in the Score configuration
 
-set -euo pipefail
-
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CERTS_DIR="${SCRIPT_DIR}/certs"
-SCORE_FILE="${SCRIPT_DIR}/score.yaml"
+CERTS_DIR="certs"
+SCORE_FILE="score.yaml"
 
 echo "Populating Score.yaml with TLS certificates..."
 
