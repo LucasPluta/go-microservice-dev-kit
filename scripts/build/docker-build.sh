@@ -59,7 +59,7 @@ BINARY_PATH="${BIN_DIR}/${SERVICE}-linux-amd64"
 if [ ! -f "$BINARY_PATH" ]; then
     lp-warn "Binary not found: ${BINARY_PATH}"
     lp-echo "Building for linux/amd64..."
-    "${SCRIPT_DIR}/build-multiarch.sh" "$SERVICE"
+    "./scripts/build/build-multiarch.sh" "$SERVICE"
 fi
 
 cd "$FRAMEWORK_ROOT"
@@ -70,3 +70,18 @@ SHA=$(docker build -q \
     -f Dockerfile .)
 
 lp-echo "Built: ${SERVICE}:latest - SHA: $SHA"
+
+# if kind is installed, load the images into kind
+if command -v kind &> /dev/null; then
+    # Check the list of clusters.  If only one exists, use that name, otherwise look for a cluster named "kind"
+    if [ "$(kind get clusters | wc -l)" -eq 1 ]; then
+        CLUSTER_NAME=$(kind get clusters)
+        lp-echo "Loading image into kind cluster '${CLUSTER_NAME}'..."
+        kind load docker-image "${SERVICE}:latest" --name "${CLUSTER_NAME}"
+    elif kind get clusters | grep -q "^kind$"; then
+        lp-echo "Loading image into kind cluster 'kind'..."
+        kind load docker-image "${SERVICE}:latest" --name "kind"
+    else 
+        lp-echo "No suitable kind cluster found. Skipping loading image into kind."
+    fi
+fi
