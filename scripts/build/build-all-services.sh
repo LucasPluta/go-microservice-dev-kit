@@ -22,7 +22,7 @@ for service_dir in "$SERVICES_DIR"/*; do
             exit 1
         fi
         
-        ((service_count++))
+        service_count=$((service_count + 1))
     fi
 done
 
