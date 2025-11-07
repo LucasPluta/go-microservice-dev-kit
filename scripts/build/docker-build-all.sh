@@ -16,8 +16,8 @@ for service_dir in "$SERVICES_DIR"/*; do
             lp-error "Failed to build ${service_name}"
             exit 1
         fi
-        
-        ((service_count++))
+
+        service_count=$((service_count + 1))
     fi
 done
 

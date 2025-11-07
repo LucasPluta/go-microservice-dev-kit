@@ -1,0 +1,393 @@
+apiVersion: score.dev/v1b1
+kind: Workload
+metadata:
+  name: gomicroservice-framework
+
+spec:
+  containers:
+    # Infrastructure Services
+    postgres:
+      image: postgres:15-alpine
+      variables:
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: postgres
+        POSTGRES_DB: microservices
+      resources:
+        requests:
+          memory: "256Mi"
+          cpu: "100m"
+        limits:
+          memory: "512Mi"
+          cpu: "500m"
+      livenessProbe:
+        httpGet:
+          path: /
+          port: 5432
+        initialDelaySeconds: 30
+        periodSeconds: 10
+      readinessProbe:
+        httpGet:
+          path: /
+          port: 5432
+        initialDelaySeconds: 5
+        periodSeconds: 5
+      volumes:
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+          readOnly: false
+
+    redis:
+      image: redis:7-alpine
+      resources:
+        requests:
+          memory: "128Mi"
+          cpu: "50m"
+        limits:
+          memory: "256Mi"
+          cpu: "200m"
+      livenessProbe:
+        exec:
+          command:
+            - redis-cli
+            - ping
+        initialDelaySeconds: 10
+        periodSeconds: 10
+      readinessProbe:
+        exec:
+          command:
+            - redis-cli
+            - ping
+        initialDelaySeconds: 5
+        periodSeconds: 5
+
+    nats:
+      image: nats:2-alpine
+      command:
+        - /nats-server
+        - "-js"
+        - "-m"
+        - "8222"
+      resources:
+        requests:
+          memory: "128Mi"
+          cpu: "50m"
+        limits:
+          memory: "256Mi"
+          cpu: "200m"
+      livenessProbe:
+        httpGet:
+          path: /healthz
+          port: 8222
+        initialDelaySeconds: 10
+        periodSeconds: 10
+      readinessProbe:
+        httpGet:
+          path: /healthz
+          port: 8222
+        initialDelaySeconds: 5
+        periodSeconds: 5
+
+    # Microservices
+    example-service:
+      image: "${IMAGE_REGISTRY:-localhost:5000}/example-service:${IMAGE_TAG:-latest}"
+      variables:
+        SERVICE_NAME: example-service
+        GRPC_PORT: "50051"
+        USE_TLS: "true"
+        TLS_CERT_FILE: /certs/server-cert.pem
+        TLS_KEY_FILE: /certs/server-key.pem
+        TLS_CA_FILE: /certs/ca-cert.pem
+        TLS_REQUIRE_CLIENT_AUTH: "false"
+        USE_POSTGRES: "true"
+        POSTGRES_HOST: "${resources.postgres.host}"
+        POSTGRES_PORT: "${resources.postgres.port}"
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: postgres
+        POSTGRES_DB: microservices
+        USE_REDIS: "true"
+        REDIS_HOST: "${resources.redis.host}"
+        REDIS_PORT: "${resources.redis.port}"
+        USE_NATS: "true"
+        NATS_URL: "nats://${resources.nats.host}:${resources.nats.port}"
+      resources:
+        requests:
+          memory: "128Mi"
+          cpu: "100m"
+        limits:
+          memory: "256Mi"
+          cpu: "500m"
+      livenessProbe:
+        exec:
+          command:
+            - /bin/grpc_health_probe
+            - "-addr=localhost:50051"
+            - "-tls"
+            - "-tls-ca-cert=/certs/ca-cert.pem"
+        initialDelaySeconds: 30
+        periodSeconds: 10
+      readinessProbe:
+        exec:
+          command:
+            - /bin/grpc_health_probe
+            - "-addr=localhost:50051"
+            - "-tls"
+            - "-tls-ca-cert=/certs/ca-cert.pem"
+        initialDelaySeconds: 5
+        periodSeconds: 5
+      volumes:
+        - name: certs
+          mountPath: /certs
+          readOnly: true
+
+    health-service:
+      image: "${IMAGE_REGISTRY:-localhost:5000}/health-service:${IMAGE_TAG:-latest}"
+      variables:
+        SERVICE_NAME: health-service
+        GRPC_PORT: "50052"
+        USE_TLS: "true"
+        TLS_CERT_FILE: /certs/server-cert.pem
+        TLS_KEY_FILE: /certs/server-key.pem
+        TLS_CA_FILE: /certs/ca-cert.pem
+        TLS_REQUIRE_CLIENT_AUTH: "false"
+        USE_POSTGRES: "true"
+        POSTGRES_HOST: "${resources.postgres.host}"
+        POSTGRES_PORT: "${resources.postgres.port}"
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: postgres
+        POSTGRES_DB: microservices
+        USE_REDIS: "true"
+        REDIS_HOST: "${resources.redis.host}"
+        REDIS_PORT: "${resources.redis.port}"
+        USE_NATS: "true"
+        NATS_URL: "nats://${resources.nats.host}:${resources.nats.port}"
+      resources:
+        requests:
+          memory: "128Mi"
+          cpu: "100m"
+        limits:
+          memory: "256Mi"
+          cpu: "500m"
+      livenessProbe:
+        exec:
+          command:
+            - /bin/grpc_health_probe
+            - "-addr=localhost:50052"
+            - "-tls"
+            - "-tls-ca-cert=/certs/ca-cert.pem"
+        initialDelaySeconds: 30
+        periodSeconds: 10
+      readinessProbe:
+        exec:
+          command:
+            - /bin/grpc_health_probe
+            - "-addr=localhost:50052"
+            - "-tls"
+            - "-tls-ca-cert=/certs/ca-cert.pem"
+        initialDelaySeconds: 5
+        periodSeconds: 5
+      volumes:
+        - name: certs
+          mountPath: /certs
+          readOnly: true
+
+    user-service:
+      image: "${IMAGE_REGISTRY:-localhost:5000}/user-service:${IMAGE_TAG:-latest}"
+      variables:
+        SERVICE_NAME: user-service
+        GRPC_PORT: "50053"
+        USE_TLS: "true"
+        TLS_CERT_FILE: /certs/server-cert.pem
+        TLS_KEY_FILE: /certs/server-key.pem
+        TLS_CA_FILE: /certs/ca-cert.pem
+        TLS_REQUIRE_CLIENT_AUTH: "false"
+        USE_POSTGRES: "true"
+        POSTGRES_HOST: "${resources.postgres.host}"
+        POSTGRES_PORT: "${resources.postgres.port}"
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: postgres
+        POSTGRES_DB: microservices
+        USE_REDIS: "true"
+        REDIS_HOST: "${resources.redis.host}"
+        REDIS_PORT: "${resources.redis.port}"
+        USE_NATS: "true"
+        NATS_URL: "nats://${resources.nats.host}:${resources.nats.port}"
+      resources:
+        requests:
+          memory: "128Mi"
+          cpu: "100m"
+        limits:
+          memory: "256Mi"
+          cpu: "500m"
+      livenessProbe:
+        exec:
+          command:
+            - /bin/grpc_health_probe
+            - "-addr=localhost:50053"
+            - "-tls"
+            - "-tls-ca-cert=/certs/ca-cert.pem"
+        initialDelaySeconds: 30
+        periodSeconds: 10
+      readinessProbe:
+        exec:
+          command:
+            - /bin/grpc_health_probe
+            - "-addr=localhost:50053"
+            - "-tls"
+            - "-tls-ca-cert=/certs/ca-cert.pem"
+        initialDelaySeconds: 5
+        periodSeconds: 5
+      volumes:
+        - name: certs
+          mountPath: /certs
+          readOnly: true
+
+    # Web Client (React + gRPC-Web + Nginx)
+    web-client:
+      image: "${IMAGE_REGISTRY:-localhost:5000}/web-client:${IMAGE_TAG:-latest}"
+      resources:
+        requests:
+          memory: "64Mi"
+          cpu: "50m"
+        limits:
+          memory: "128Mi"
+          cpu: "200m"
+      livenessProbe:
+        httpGet:
+          path: /
+          port: 443
+          scheme: HTTPS
+        initialDelaySeconds: 10
+        periodSeconds: 10
+      readinessProbe:
+        httpGet:
+          path: /
+          port: 443
+          scheme: HTTPS
+        initialDelaySeconds: 5
+        periodSeconds: 5
+      volumes:
+        - name: certs
+          mountPath: /certs
+          readOnly: true
+
+  service:
+    # Infrastructure service discovery
+    postgres:
+      port: 5432
+      targetPort: 5432
+      protocol: TCP
+
+    redis:
+      port: 6379
+      targetPort: 6379
+      protocol: TCP
+
+    nats:
+      ports:
+        client:
+          port: 4222
+          targetPort: 4222
+          protocol: TCP
+        monitoring:
+          port: 8222
+          targetPort: 8222
+          protocol: TCP
+
+    # Microservice gRPC endpoints
+    example-service:
+      port: 50051
+      targetPort: 50051
+      protocol: TCP
+
+    health-service:
+      port: 50052
+      targetPort: 50052
+      protocol: TCP
+
+    user-service:
+      port: 50053
+      targetPort: 50053
+      protocol: TCP
+
+    # Web client endpoints
+    web-client:
+      ports:
+        http:
+          port: 80
+          targetPort: 80
+          protocol: TCP
+        https:
+          port: 443
+          targetPort: 443
+          protocol: TCP
+
+  resources:
+    # Infrastructure resources
+    postgres:
+      type: service
+      properties:
+        host: postgres
+        port: 5432
+
+    redis:
+      type: service
+      properties:
+        host: redis
+        port: 6379
+
+    nats:
+      type: service
+      properties:
+        host: nats
+        port: 4222
+
+    # Persistent storage
+    postgres-data:
+      type: volume
+      properties:
+        size: "10Gi"
+        storageClass: "${STORAGE_CLASS:-standard}"
+
+    # TLS certificates volume
+    certs:
+      type: volume
+      properties:
+        source: configMap
+        name: tls-certificates
+        items:
+          - key: ca-cert.pem
+            path: ca-cert.pem
+          - key: server-cert.pem
+            path: server-cert.pem
+          - key: server-key.pem
+            path: server-key.pem
+          - key: client-cert.pem
+            path: client-cert.pem
+          - key: client-key.pem
+            path: client-key.pem
+
+---
+# Additional Score configuration for TLS certificates
+apiVersion: score.dev/v1b1
+kind: Resource
+metadata:
+  name: tls-certificates
+spec:
+  type: configMap
+  properties:
+    data:
+      ca-cert.pem: |
+        # Base64 encoded CA certificate
+        # This should be populated from ./certs/ca-cert.pem
+      server-cert.pem: |
+        # Base64 encoded server certificate
+        # This should be populated from ./certs/server-cert.pem
+      server-key.pem: |
+        # Base64 encoded server private key
+        # This should be populated from ./certs/server-key.pem
+      client-cert.pem: |
+        # Base64 encoded client certificate
+        # This should be populated from ./certs/client-cert.pem
+      client-key.pem: |
+        # Base64 encoded client private key
+        # This should be populated from ./certs/client-key.pem

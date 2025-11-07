@@ -18,7 +18,7 @@ cleanup() {
 }
 
 # Trap SIGINT (Ctrl+C) and run cleanup
-trap cleanup SIGINT SIGTERM EXIT
+#trap cleanup SIGINT SIGTERM EXIT
 
 # -----------------------------
 # Main Script

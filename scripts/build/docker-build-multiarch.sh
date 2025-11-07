@@ -20,7 +20,7 @@ lp-echo "Registry: ${REGISTRY}"
 
 # Build binaries for multiple architectures
 lp-echo "Building binaries for multiple architectures..."
-"${SCRIPT_DIR}/build-multiarch.sh" "$SERVICE"
+"./scripts/build/build-multiarch.sh" "$SERVICE"
 
 cd "$FRAMEWORK_ROOT"
 

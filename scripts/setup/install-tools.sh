@@ -20,6 +20,9 @@ lp-quiet-echo "Installing protoc-gen-go..."
 lp-quiet-echo "Installing protoc-gen-go-grpc..."
 "$GO" install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest 2>&1
 
+lp-quiet-echo "Installing score-compose..."
+"$GO" install github.com/score-spec/score-compose/cmd/score-compose@latest 2>&1
+
 # Get the relative path to GOBIN_CACHE, use basename
 GOBIN_RELATIVE=$(basename "$GOBIN_CACHE")
 
